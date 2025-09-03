@@ -1,0 +1,24 @@
+name: License
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@v4
+
+      - name: Set up Go ${{matrix.go-version}}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{matrix.go-version}}
+
+      - name: 'Validate License Headers'
+        # NOTE: Keep in sync with .hooks/addlicense
+        run: go run github.com/google/addlicense@v1.1.1 -check -s=only -ignore='bin/**' -ignore='**/.terraform.lock.hcl' -ignore='definitions/**' **

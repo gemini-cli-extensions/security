@@ -20,11 +20,11 @@ gemini extensions install --source https://github.com/google-gemini/gemini-cli-s
 
 ## Use the extension
 
-The Security extension adds the `/security analyze` command to Gemini CLI.
+The Security extension adds the `/security:analyze` command to Gemini CLI.
 
 ## GitHub Integration
 
-TODO
+Coming soon!
 
 ## Types of vulnerabilities
 
@@ -58,11 +58,10 @@ The Security extension scans files for the following vulnerabilities:
 ## Resources
 
 - [Gemini CLI extensions](https://github.com/google-gemini/gemini-cli/blob/main/docs/extension.md): Documentation about using extensions in Gemini CLI
-- Blog post (coming soon!): More information about the Security Review extension
+- Blog post (coming soon!): More information about the Security extension
 - [GitHub issues](https://github.com/google-gemini/gemini-cli-security/issues): Report bugs or request features
 
 ## Legal
 
 - License: [Apache License 2.0](https://github.com/google-gemini/gemini-cli-security/blob/main/LICENSE)
-- Terms of Service: [Terms & Privacy](https://github.com/google-gemini/gemini-cli-security/blob/main/docs/tos-privacy.md)
 - Security: [Security Policy](https://github.com/google-gemini/gemini-cli-security/blob/main/SECURITY.md)
