@@ -1,0 +1,15 @@
+[project]
+name = "gemini-cli-uv-extension"
+version = "0.1.0"
+description = "A Gemini CLI extension using uv for dependency management."
+dependencies = [
+    # Core dependencies for your server to run
+    "fastmcp",
+    "uvicorn",
+]
+
+[project.optional-dependencies]
+# Dependencies needed for the command-line helper
+cli = [
+    "fastmcp[cli]"
+]
