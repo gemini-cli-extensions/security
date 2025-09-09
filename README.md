@@ -28,11 +28,11 @@ Important: This report is a first-pass analysis, not a complete security audit. 
 
 Coming soon!
 
-## **Benchmark**
+## Benchmark
 
 To evaluate the quality and effectiveness of our security analysis, we benchmarked the extension against a real-world dataset of known vulnerabilities.
 
-### **Methodology**
+### Methodology
 
 Our evaluation process is designed to test the extension's ability to identify vulnerabilities in code changes.
 
@@ -41,14 +41,14 @@ Our evaluation process is designed to test the extension's ability to identify v
 3. **Report Generation**: We ran the /security:analyze command on this diff to generate a security report.  
 4. **Validation**: Since the dataset has a small number of repositories, we manually reviewed all the generated security reports and compared with the ground truth to calculate the final precision and recall numbers.
 
-### **Results**
+### Results
 
 Our evaluation on this dataset yielded a precision of **90%** and a recall of **93%**.
 
 * **Precision (90%)** measures the accuracy of our detections. Of all the potential vulnerabilities the extension identified, 90% were actual security risks.  
 * **Recall (93%)** measures the completeness of our coverage. The extension successfully identified 93% of all the known vulnerabilities present in the dataset.
 
-### **Caveat**
+### Caveat
 
 It is important to note a limitation of this benchmark methodology. Analyzing the diff from the `postPatch` (fixed code) to the `prePatch` (vulnerable code) does not perfectly replicate a real-world scenario, as the changes already contain the context of the vulnerability's solution. This may differ from the analysis of a typical pull request where a vulnerability might be introduced unknowingly.
 
