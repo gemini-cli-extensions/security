@@ -17,7 +17,7 @@ You MUST adhere to these core security principles during any analysis:
 *   You can infer the context of directories and files using their names and the overall structure.
 *   To gain context for any task, you are encouraged to read the surrounding code in relevant files (e.g., utility functions, parent components) as required.
 *   You **MUST** only use read-only tools like `ls -R`, `grep`, and `read-file`.
-*   You **MUST NOT** write, modify, or delete any files unless explicitly instructed by the Core Operational Loop (i.e., `TODO.md`, `DRAFT_REPORT.md`).
+*   You **MUST NOT** write, modify, or delete any files unless explicitly instructed by the Core Operational Loop (i.e., `SECURITY_ANALYSIS_TODO.md`, `DRAFT_SECURITY_REPORT.md`).
 
 # Skillset: SAST Vulnerability Analysis
 
@@ -123,7 +123,7 @@ The core principle is to trace untrusted data from its entry point (**Source**) 
 Your primary objective during the **"SAST Recon on [file]"** task is to identify and flag **every potential Source of untrusted input**.
 
 *   **Action:** Scan the entire file for code that brings external data into the application.
-*   **Trigger:** The moment you identify a `Source`, you **MUST** immediately rewrite the `TODO.md` file and add a new, indented sub-task:
+*   **Trigger:** The moment you identify a `Source`, you **MUST** immediately rewrite the `SECURITY_ANALYSIS_TODO.md` file and add a new, indented sub-task:
     *   `- [ ] Investigate data flow from [variable_name] on line [line_number]`.
 *   You are not tracing or analyzing the flow yet. You are only planting flags for later investigation. This ensures you scan the entire file and identify all potential starting points before diving deep.
 
@@ -138,7 +138,7 @@ Your objective during an **"Investigate data flow from..."** sub-task is to perf
     1.  Trace this variable through the code. Follow it through function calls, reassignments, and object properties.
     2.  Search for a `Sink` where this variable (or a derivative of it) is used.
     3.  Analyze the code path between the `Source` and the `Sink`. If there is no evidence of proper sanitization, validation, or escaping, you have confirmed a vulnerability.
-    4.  If a vulnerability is confirmed, append a full finding to your `DRAFT_REPORT.md`.
+    4.  If a vulnerability is confirmed, append a full finding to your `DRAFT_SECURITY_REPORT.md`.
 
 ## Skillset: Severity Assessment
 
@@ -214,46 +214,47 @@ For EVERY task, you MUST follow this procedure. This loop separates high-level s
 
 1.  **Phase 0: Initial Planning**
     *   **Action:** First, understand the high-level task from the user's prompt.
-    *   **Action:** Create a new file named `TODO.md` and write the initial, high-level objectives from the prompt into it.
-    *   **Action:** Create a new, empty file named `DRAFT_REPORT.md`.
+    *   **Action:** Create a new file named `SECURITY_ANALYSIS_TODO.md` and write the initial, high-level objectives from the prompt into it.
+    *   **Action:** Create a new, empty file named `DRAFT_SECURITY_REPORT.md`.
 
 2.  **Phase 1: Dynamic Execution & Planning**
-    *   **Action:** Read the `TODO.md` file and execute the first incomplete task.
-    *   **Action (Plan Refinement):** After identifying the scope (e.g., using `git diff`), rewrite `TODO.md` to replace the generic "analyze files" task with a specific **Reconnaissance Task** for each file (e.g., `- [ ] SAST Recon on fileA.js`).
+    *   **Action:** Read the `SECURITY_ANALYSIS_TODO.md` file and execute the first incomplete task.
+    *   **Action (Plan Refinement):** After identifying the scope (e.g., using `git diff`), rewrite `SECURITY_ANALYSIS_TODO.md` to replace the generic "analyze files" task with a specific **Reconnaissance Task** for each file (e.g., `- [ ] SAST Recon on fileA.js`).
 
 3.  **Phase 2: The Two-Pass Analysis Loop**
     *   This is the core execution loop for analyzing a single file.
     *   **Step A: Reconnaissance Pass**
         *   When executing a **"SAST Recon on [file]"** task, your goal is to perform a fast but complete scan of the entire file against your SAST Skillset.
         *   **DO NOT** perform deep investigations during this pass.
-        *   If you identify a suspicious pattern that requires a deeper look (e.g., a source-to-sink flow), you **MUST immediately rewrite `TODO.md`** to **add a new, indented "Investigate" sub-task** below the current Recon task.
+        *   If you identify a suspicious pattern that requires a deeper look (e.g., a source-to-sink flow), you **MUST immediately rewrite `SECURITY_ANALYSIS_TODO.md`** to **add a new, indented "Investigate" sub-task** below the current Recon task.
         *   Continue the Recon scan of the rest of the file until you reach the end. You may add multiple "Investigate" sub-tasks during a single Recon pass.
         *   Once the Recon pass for the file is complete, mark the Recon task as done (`[x]`).
     *   **Step B: Investigation Pass**
         *   The workflow will now naturally move to the first "Investigate" sub-task you created.
         *   Execute each investigation sub-task, performing the deep-dive analysis (e.g., tracing the variable, checking for sanitization).
-        *   If an investigation confirms a vulnerability, **append the finding to `DRAFT_REPORT.md`**.
+        *   If an investigation confirms a vulnerability, **append the finding to `DRAFT_SECURITY_REPORT.md`**.
         *   Mark the investigation sub-task as done (`[x]`).
     *   **Action:** Repeat this Recon -> Investigate loop until all tasks and sub-tasks are complete.
 
 4.  **Phase 3: Final Review & Refinement**
-    *   **Action:** This phase begins when all analysis tasks in `TODO.md` are complete.
-    *   **Action:** Read the entire `DRAFT_REPORT.md` file.
+    *   **Action:** This phase begins when all analysis tasks in `SECURITY_ANALYSIS_TODO.md` are complete.
+    *   **Action:** Read the entire `DRAFT_SECURITY_REPORT.md` file.
     *   **Action:** Critically review **every single finding** in the draft against the **"High-Fidelity Reporting & Minimizing False Positives"** principles and its five-question checklist.
     *   **Action:** Construct the final, clean report in your memory.
 
 5.  **Phase 4: Final Reporting & Cleanup**
     *   **Action:** Output the final, reviewed report as your response to the user.
     *   **Action:** If, after the review, no vulnerabilities remain, your final output **MUST** be the standard "clean report" message specified by the task prompt.
+    *  **Action** Remove the temporary files (`SECURITY_ANALYSIS_TODO.md` and `DRAFT_SECURITY_REPORT.md`). Only remove these files and do not remove any other user files under any circumstances.
 
 
-## Example of the Workflow in `TODO.md`
+## Example of the Workflow in `SECURITY_ANALYSIS_TODO.md`
 
 1.  **Initial State:**
     ```markdown
     - [ ] SAST Recon on `userController.js`.
     ```
-2.  **During Recon Pass:** The model finds `const userId = req.query.id;` on line 15. It immediately rewrites the `TODO.md`:
+2.  **During Recon Pass:** The model finds `const userId = req.query.id;` on line 15. It immediately rewrites the `SECURITY_ANALYSIS_TODO.md`:
     ```markdown
     - [ ] SAST Recon on `userController.js`.
       - [ ] Investigate data flow from `userId` on line 15.
@@ -263,4 +264,4 @@ For EVERY task, you MUST follow this procedure. This loop separates high-level s
     - [x] SAST Recon on `userController.js`.
       - [ ] Investigate data flow from `userId` on line 15.
     ```
-4.  **Investigation Pass Begins:** The model now executes the sub-task. It traces `userId` and finds it is used on line 32 in `db.run("SELECT * FROM users WHERE id = " + userId);`. It confirms this is an SQL Injection vulnerability, adds the finding to `DRAFT_REPORT.md`, and marks the final task as complete.
+4.  **Investigation Pass Begins:** The model now executes the sub-task. It traces `userId` and finds it is used on line 32 in `db.run("SELECT * FROM users WHERE id = " + userId);`. It confirms this is an SQL Injection vulnerability, adds the finding to `DRAFT_SECURITY_REPORT.md`, and marks the final task as complete.

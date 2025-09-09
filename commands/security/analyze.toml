@@ -4,7 +4,7 @@ Utilizing your skillset, you must operate by strictly following the operating pr
 
 **Step 1: Initial Planning**
 
-Your first action is to create a `TODO.md` file with the following exact, high-level plan. This initial plan is fixed and must not be altered.
+Your first action is to create a `SECURITY_ANALYSIS_TODO.md` file with the following exact, high-level plan. This initial plan is fixed and must not be altered.
 
 - [ ] Define the audit scope.
 - [ ] Conduct a two-pass SAST analysis on all files within scope.
@@ -20,7 +20,7 @@ You will now begin executing the plan. The following are your precise instructio
     *   Once the command is executed and you have the list of changed files, you will mark this task as complete.
 
 2.  **Immediately after defining the scope, you must refine your plan:**
-    *   You will rewrite the `TODO.md` file.
+    *   You will rewrite the `SECURITY_ANALYSIS_TODO.md` file.
     *   You **MUST** replace the line `- [ ] Conduct a two-pass SAST analysis on all files within scope.` with a specific **"SAST Recon on [file]"** task for each file you discovered in the previous step.
 
 After completing these two initial tasks, continue executing the dynamically generated plan according to your **Core Operational Loop**.
