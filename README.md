@@ -24,6 +24,7 @@ The Security extension adds the `/security:analyze` command to Gemini CLI which 
 
 Important: This report is a first-pass analysis, not a complete security audit. Use in combination with other tools and manual review.
 
+Note: The /security:analyze command is currently designed for interactive use. Support for non-interactive sessions is planned for a future release (tracked in [issue #20](https://github.com/google-gemini/gemini-cli-security/issues/20)).
 ## GitHub Integration
 
 Coming soon!
