@@ -91,3 +91,7 @@ The Security extension scans files for the following vulnerabilities:
 
 - License: [Apache License 2.0](https://github.com/gemini-cli-extensions/security/blob/main/LICENSE)
 - Security: [Security Policy](https://github.com/gemini-cli-extensions/security/blob/main/SECURITY.md)
+
+## Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=gemini-cli-extensions/security&type=Date)](https://www.star-history.com/#gemini-cli-extensions/security&Date)
