@@ -1,0 +1,289 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: 'Run Gemini CLI'
+author: 'Google LLC'
+description: |-
+  Invoke the Gemini CLI from a GitHub Action.
+
+inputs:
+  gcp_location:
+    description: 'The Google Cloud location.'
+    required: false
+  gcp_project_id:
+    description: 'The Google Cloud project ID.'
+    required: false
+  gcp_service_account:
+    description: 'The Google Cloud service account email.'
+    required: false
+  gcp_workload_identity_provider:
+    description: 'The Google Cloud Workload Identity Provider.'
+    required: false
+  gemini_api_key:
+    description: 'The API key for the Gemini API.'
+    required: false
+  gemini_cli_version:
+    description: 'The version of the Gemini CLI to install. Can be "latest", "preview", "nightly", a specific version number, or a git branch, tag, or commit. For more information, see [Gemini CLI releases](https://github.com/google-gemini/gemini-cli/blob/main/docs/releases.md).'
+    required: false
+    default: 'latest'
+  gemini_debug:
+    description: 'Enable debug logging and output streaming.'
+    required: false
+  gemini_model:
+    description: 'The model to use with Gemini.'
+    required: false
+  google_api_key:
+    description: 'The Vertex AI API key to use with Gemini.'
+    required: false
+  prompt:
+    description: |-
+      A string passed to the Gemini CLI's [`--prompt` argument](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#command-line-arguments).
+    required: false
+    default: 'You are a helpful assistant.'
+  settings:
+    description: |-
+      A JSON string written to `.gemini/settings.json` to configure the CLI's _project_ settings.
+      For more details, see the documentation on [settings files](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#settings-files).
+    required: false
+  use_gemini_code_assist:
+    description: |-
+      Whether to use Code Assist for Gemini model access instead of the default Gemini API key.
+      For more information, see the [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/authentication.md).
+    required: false
+    default: 'false'
+  use_vertex_ai:
+    description: |-
+      Whether to use Vertex AI for Gemini model access instead of the default Gemini API key.
+      For more information, see the [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/authentication.md).
+    required: false
+    default: 'false'
+
+outputs:
+  summary:
+    description: 'The summarized output from the Gemini CLI execution.'
+    value: '${{ steps.gemini_run.outputs.gemini_response }}'
+  error:
+    description: 'The error output from the Gemini CLI execution, if any.'
+    value: '${{ steps.gemini_run.outputs.gemini_errors }}'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Validate Inputs'
+      id: 'validate_inputs'
+      shell: 'bash'
+      run: |-
+        set -exuo pipefail
+
+        # Emit a clear warning in three places without failing the step
+        warn() {
+          local msg="$1"
+          echo "WARNING: ${msg}" >&2
+          echo "::warning title=Input validation::${msg}"
+          if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            {
+              echo "### Input validation warnings"
+              echo
+              echo "- ${msg}"
+            } >> "${GITHUB_STEP_SUMMARY}"
+          fi
+        }
+
+        # Validate the count of authentication methods
+        auth_methods=0
+        if [[ "${INPUT_GEMINI_API_KEY_PRESENT:-false}" == "true" ]]; then ((++auth_methods)); fi
+        if [[ "${INPUT_GOOGLE_API_KEY_PRESENT:-false}" == "true" ]]; then ((++auth_methods)); fi
+        if [[ "${INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT:-false}" == "true" ]]; then ((++auth_methods)); fi
+
+        if [[ ${auth_methods} -eq 0 ]]; then
+          warn "No authentication method provided. Please provide one of 'gemini_api_key', 'google_api_key', or 'gcp_workload_identity_provider'."
+        fi
+
+        if [[ ${auth_methods} -gt 1 ]]; then
+          warn "Multiple authentication methods provided. Please use only one of 'gemini_api_key', 'google_api_key', or 'gcp_workload_identity_provider'."
+        fi
+
+        # Validate Workload Identity Federation inputs
+        if [[ "${INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT:-false}" == "true" ]]; then
+          if [[ "${INPUT_GCP_PROJECT_ID_PRESENT:-false}" != "true" || "${INPUT_GCP_SERVICE_ACCOUNT_PRESENT:-false}" != "true" ]]; then
+            warn "When using Workload Identity Federation ('gcp_workload_identity_provider'), you must also provide 'gcp_project_id' and 'gcp_service_account'."
+          fi
+          if [[ "${INPUT_USE_VERTEX_AI:-false}" == "${INPUT_USE_GEMINI_CODE_ASSIST:-false}" ]]; then
+            warn "When using Workload Identity Federation, you must set exactly one of 'use_vertex_ai' or 'use_gemini_code_assist' to 'true'."
+          fi
+        fi
+
+        # Validate Vertex AI API Key
+        if [[ "${INPUT_GOOGLE_API_KEY_PRESENT:-false}" == "true" ]]; then
+          if [[ "${INPUT_USE_VERTEX_AI:-false}" != "true" ]]; then
+            warn "When using 'google_api_key', you must set 'use_vertex_ai' to 'true'."
+          fi
+          if [[ "${INPUT_USE_GEMINI_CODE_ASSIST:-false}" == "true" ]]; then
+            warn "When using 'google_api_key', 'use_gemini_code_assist' cannot be 'true'."
+          fi
+        fi
+
+        # Validate Gemini API Key
+        if [[ "${INPUT_GEMINI_API_KEY_PRESENT:-false}" == "true" ]]; then
+          if [[ "${INPUT_USE_VERTEX_AI:-false}" == "true" || "${INPUT_USE_GEMINI_CODE_ASSIST:-false}" == "true" ]]; then
+            warn "When using 'gemini_api_key', both 'use_vertex_ai' and 'use_gemini_code_assist' must be 'false'."
+          fi
+        fi
+      env:
+        INPUT_GEMINI_API_KEY_PRESENT: "${{ inputs.gemini_api_key != '' }}"
+        INPUT_GOOGLE_API_KEY_PRESENT: "${{ inputs.google_api_key != '' }}"
+        INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT: "${{ inputs.gcp_workload_identity_provider != '' }}"
+        INPUT_GCP_PROJECT_ID_PRESENT: "${{ inputs.gcp_project_id != '' }}"
+        INPUT_GCP_SERVICE_ACCOUNT_PRESENT: "${{ inputs.gcp_service_account != '' }}"
+        INPUT_USE_VERTEX_AI: '${{ inputs.use_vertex_ai }}'
+        INPUT_USE_GEMINI_CODE_ASSIST: '${{ inputs.use_gemini_code_assist }}'
+
+    - name: 'Configure Gemini CLI'
+      if: |-
+        ${{ inputs.settings != '' }}
+      run: |-
+        mkdir -p .gemini/
+        echo "${SETTINGS}" > ".gemini/settings.json"
+      shell: 'bash'
+      env:
+        SETTINGS: '${{ inputs.settings }}'
+
+    - name: 'Authenticate to Google Cloud'
+      if: |-
+        ${{ inputs.gcp_workload_identity_provider != '' }}
+      id: 'auth'
+      uses: 'google-github-actions/auth@v2' # ratchet:exclude
+      with:
+        project_id: '${{ inputs.gcp_project_id }}'
+        workload_identity_provider: '${{ inputs.gcp_workload_identity_provider }}'
+        service_account: '${{ inputs.gcp_service_account }}'
+        token_format: 'access_token'
+        access_token_scopes: 'https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
+
+    - name: 'Run Telemetry Collector for Google Cloud'
+      if: |-
+        ${{ inputs.gcp_workload_identity_provider != '' }}
+      env:
+        OTLP_GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
+        GITHUB_ACTION_PATH: '${{ github.action_path }}'
+      shell: 'bash'
+      run: |-
+        set -euo pipefail
+        mkdir -p .gemini/
+        sed "s/OTLP_GOOGLE_CLOUD_PROJECT/${OTLP_GOOGLE_CLOUD_PROJECT}/g" "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".gemini/collector-gcp.yaml"
+
+        chmod 444 "$GOOGLE_APPLICATION_CREDENTIALS"
+        docker run -d --name gemini-telemetry-collector --network host \
+          -v "${GITHUB_WORKSPACE}:/github/workspace" \
+          -e "GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS/$GITHUB_WORKSPACE//github/workspace}" \
+          -w "/github/workspace" \
+          otel/opentelemetry-collector-contrib:0.128.0 \
+          --config /github/workspace/.gemini/collector-gcp.yaml
+
+    - name: 'Install Gemini CLI'
+      id: 'install'
+      env:
+        GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
+      shell: 'bash'
+      run: |-
+        set -euo pipefail
+
+        VERSION_INPUT="${GEMINI_CLI_VERSION:-latest}"
+
+        if [[ "${VERSION_INPUT}" == "latest" || "${VERSION_INPUT}" == "preview" || "${VERSION_INPUT}" == "nightly" || "${VERSION_INPUT}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
+          echo "Installing Gemini CLI from npm: @google/gemini-cli@${VERSION_INPUT}"
+          npm install --silent --no-audit --prefer-offline --global @google/gemini-cli@"${VERSION_INPUT}"
+        else
+          echo "Installing Gemini CLI from GitHub: github:google-gemini/gemini-cli#${VERSION_INPUT}"
+          git clone https://github.com/google-gemini/gemini-cli.git
+          cd gemini-cli
+          git checkout "${VERSION_INPUT}"
+          npm install
+          npm run bundle
+          npm install --silent --no-audit --prefer-offline --global .
+        fi
+        echo "Verifying installation:"
+        if command -v gemini >/dev/null 2>&1; then
+          gemini --version || echo "Gemini CLI installed successfully (version command not available)"
+        else
+          echo "Error: Gemini CLI not found in PATH"
+          exit 1
+        fi
+
+    - name: 'Run Gemini CLI'
+      id: 'gemini_run'
+      shell: 'bash'
+      run: |-
+        set -euo pipefail
+
+        # Create a temporary directory for storing the output, and ensure it's
+        # cleaned up later
+        TEMP_STDOUT="$(mktemp -p "${RUNNER_TEMP}" gemini-out.XXXXXXXXXX)"
+        TEMP_STDERR="$(mktemp -p "${RUNNER_TEMP}" gemini-err.XXXXXXXXXX)"
+        function cleanup {
+          rm -f "${TEMP_STDOUT}" "${TEMP_STDERR}"
+        }
+        trap cleanup EXIT
+
+        # Keep track of whether we've failed
+        FAILED=false
+
+        # Run Gemini CLI with the provided prompt, streaming responses in debug
+        if [[ "${DEBUG}" = true ]]; then
+          echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
+          if ! { gemini --yolo --prompt "${PROMPT}" 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; }; then
+            FAILED=true
+          fi
+        else
+          if ! gemini --yolo --prompt "${PROMPT}" 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
+            FAILED=true
+          fi
+        fi
+
+        GEMINI_RESPONSE="$(cat "${TEMP_STDOUT}")"
+
+        # Set the captured response as a step output, supporting multiline
+        echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
+        echo "${GEMINI_RESPONSE}" >> "${GITHUB_OUTPUT}"
+        echo "EOF" >> "${GITHUB_OUTPUT}"
+
+        GEMINI_ERRORS="$(cat "${TEMP_STDERR}")"
+
+        # Set the captured errors as a step output, supporting multiline
+        echo "gemini_errors<<EOF" >> "${GITHUB_OUTPUT}"
+        echo "${GEMINI_ERRORS}" >> "${GITHUB_OUTPUT}"
+        echo "EOF" >> "${GITHUB_OUTPUT}"
+
+        if [[ "${FAILED}" = true ]]; then
+          LAST_LINE="$(echo "${GEMINI_ERRORS}" | tail -n1)"
+          echo "::error title=Gemini CLI execution failed::${LAST_LINE}"
+          echo "See logs for more details"
+          exit 1
+        fi
+      env:
+        DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
+        GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
+        SURFACE: 'GitHub'
+        GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
+        GOOGLE_CLOUD_LOCATION: '${{ inputs.gcp_location }}'
+        GOOGLE_GENAI_USE_VERTEXAI: '${{ inputs.use_vertex_ai }}'
+        GOOGLE_API_KEY: '${{ inputs.google_api_key }}'
+        GOOGLE_GENAI_USE_GCA: '${{ inputs.use_gemini_code_assist }}'
+        GOOGLE_CLOUD_ACCESS_TOKEN: '${{steps.auth.outputs.access_token}}'
+        PROMPT: '${{ inputs.prompt }}'
+        GEMINI_MODEL: '${{ inputs.gemini_model }}'
+
+branding:
+  icon: 'terminal'
+  color: 'blue'
