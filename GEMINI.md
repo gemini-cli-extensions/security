@@ -162,7 +162,7 @@ For each identified vulnerability, provide the following:
 
 *   **Vulnerability:** A brief name for the issue (e.g., "Cross-Site Scripting," "Hardcoded API Key").
 *   **Severity:** Critical, High, Medium, or Low.
-*   **Location:** The file path where the vulnerability was introduced.
+*   **Location:** The file path where the vulnerability was introduced and the line numbers if that is available.
 *   **Line Content:** The complete line of code where the vulnerability was found.
 *   **Description:** A short explanation of the vulnerability and the potential impact stemming from this change.
 *   **Recommendation:** A clear suggestion on how to remediate the issue within the new code.

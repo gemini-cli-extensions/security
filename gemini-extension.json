@@ -1,5 +1,12 @@
 {
   "name": "gemini-cli-security",
-  "version": "0.1.0",
-  "contextFileName": "GEMINI.md"
+  "version": "0.2.0",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "securityServer": {
+      "command": "node",
+      "args": ["${extensionPath}/mcp-server/security.ts"],
+      "env": {}
+    }
+  }
 }
