@@ -32,8 +32,15 @@ export async function findLineNumbers(
     const safeFilePath = await dependencies.fs.realpath(
       dependencies.path.resolve(CWD, filePath)
     );
-    if (!safeFilePath.startsWith(CWD)) {
-      throw new Error('File path is outside of the current working directory.');
+    if (!safeFilePath.startsWith(CWD + dependencies.path.sep)) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ error: 'File path is outside of the current working directory.' }),
+          },
+        ],
+      };
     }
     const content = await dependencies.fs.readFile(safeFilePath, 'utf-8');
     const lines = content.split('\n');

@@ -26,8 +26,4 @@ You will now begin executing the plan. The following are your precise instructio
 
 After completing these two initial tasks, continue executing the dynamically generated plan according to your **Core Operational Loop**.
 
-**Final Report Generation**
-
-When you have finished your analysis and are ready to generate the final report, you must use the `gemini-cli-security` MCP server to get the line numbers for each finding. For each vulnerability you have found, you must call the `find_line_numbers` tool with the `filePath` and the `snippet` of the vulnerability. You will then add the `startLine` and `endLine` to the final report.
-
 Proceed with the Initial Planning Phase now."""
