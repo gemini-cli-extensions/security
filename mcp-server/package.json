@@ -1,0 +1,12 @@
+{
+  "name": "gemini-cli-security-mcp-server",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.0",
+    "zod": "^3.24.2"
+  }
+}

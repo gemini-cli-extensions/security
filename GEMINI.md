@@ -178,7 +178,7 @@ For each identified vulnerability, provide the following:
 
 *   **Vulnerability:** A brief name for the issue (e.g., "Cross-Site Scripting," "Hardcoded API Key").
 *   **Severity:** Critical, High, Medium, or Low.
-*   **Location:** The file path where the vulnerability was introduced.
+*   **Location:** The file path where the vulnerability was introduced and the line numbers if that is available.
 *   **Line Content:** The complete line of code where the vulnerability was found.
 *   **Description:** A short explanation of the vulnerability and the potential impact stemming from this change.
 *   **Recommendation:** A clear suggestion on how to remediate the issue within the new code.
@@ -259,6 +259,7 @@ For EVERY task, you MUST follow this procedure. This loop separates high-level s
     *   **Action:** This phase begins when all analysis tasks in `SECURITY_ANALYSIS_TODO.md` are complete.
     *   **Action:** Read the entire `DRAFT_SECURITY_REPORT.md` file.
     *   **Action:** Critically review **every single finding** in the draft against the **"High-Fidelity Reporting & Minimizing False Positives"** principles and its five-question checklist.
+    *   **Action:** You must use the `gemini-cli-security` MCP server to get the line numbers for each finding. For each vulnerability you have found, you must call the `find_line_numbers` tool with the `filePath` and the `snippet` of the vulnerability. You will then add the `startLine` and `endLine` to the final report.
     *   **Action:** Construct the final, clean report in your memory.
 
 5.  **Phase 4: Final Reporting & Cleanup**
