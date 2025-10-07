@@ -5,7 +5,7 @@
   "mcpServers": {
     "securityServer": {
       "command": "node",
-      "args": ["${extensionPath}/mcp-server/security.ts"]
+      "args": ["${extensionPath}/mcp-server/dist/security.js"]
     }
   }
 }
