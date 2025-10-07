@@ -7,6 +7,7 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { promises as fs } from 'fs';
@@ -26,7 +27,7 @@ export async function findLineNumbers(
     snippet: string;
   },
   dependencies: { fs: typeof fs; path: typeof path } = { fs, path }
-) {
+): Promise<CallToolResult> {
   try {
     const CWD = process.cwd();
     const safeFilePath = await dependencies.fs.realpath(

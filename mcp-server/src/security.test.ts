@@ -8,12 +8,18 @@ import { describe, it, expect } from 'vitest';
 import { findLineNumbers } from './security';
 import path from 'path';
 
+type ParsedResult = {
+  startLine?: number;
+  endLine?: number;
+  error?: string;
+};
+
 describe('findLineNumbers', () => {
   const CWD = process.cwd();
 
   const mockFs = {
-    realpath: (p: string) => p,
-    readFile: (p: string, options: string) => '',
+    realpath: (p: string) => Promise.resolve(p),
+    readFile: (p: string, options: string) => Promise.resolve(''),
   };
 
   it('should find the correct line numbers for a single-line snippet', async () => {
@@ -25,12 +31,12 @@ describe('findLineNumbers', () => {
     const mockFilePath = 'mock.ts';
     const testFs = {
       ...mockFs,
-      readFile: () => mockContent,
+      readFile: () => Promise.resolve(mockContent),
     };
 
     const result = await findLineNumbers({ filePath: mockFilePath, snippet: 'const b = 2;' }, { fs: testFs as any, path });
 
-    const parsedResult = JSON.parse(result.content[0].text);
+    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
     expect(parsedResult.startLine).toBe(3);
     expect(parsedResult.endLine).toBe(3);
   });
@@ -45,7 +51,7 @@ describe('findLineNumbers', () => {
     const mockFilePath = 'mock.ts';
     const testFs = {
       ...mockFs,
-      readFile: () => mockContent,
+      readFile: () => Promise.resolve(mockContent),
     };
 
     const result = await findLineNumbers(
@@ -56,7 +62,7 @@ describe('findLineNumbers', () => {
       { fs: testFs as any, path }
     );
 
-    const parsedResult = JSON.parse(result.content[0].text);
+    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
     expect(parsedResult.startLine).toBe(3);
     expect(parsedResult.endLine).toBe(4);
   });
@@ -69,19 +75,19 @@ describe('findLineNumbers', () => {
     const mockFilePath = 'mock.ts';
     const testFs = {
       ...mockFs,
-      readFile: () => mockContent,
+      readFile: () => Promise.resolve(mockContent),
     };
 
     const result = await findLineNumbers({ filePath: mockFilePath, snippet: 'const z = 30;' }, { fs: testFs as any, path });
 
-    const parsedResult = JSON.parse(result.content[0].text);
+    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
     expect(parsedResult.error).toBe('Snippet was not found.');
   });
 
   it('should handle an empty snippet', async () => {
     const result = await findLineNumbers({ filePath: 'mock.ts', snippet: '' }, { fs: mockFs as any, path });
 
-    const parsedResult = JSON.parse(result.content[0].text);
+    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
     expect(parsedResult.error).toBe('Snippet is empty.');
   });
 
@@ -90,13 +96,13 @@ describe('findLineNumbers', () => {
     const testFs = {
       ...mockFs,
       realpath: () => {
-        throw new Error('File not found');
+        return Promise.reject(new Error('File not found'));
       },
     };
 
     const result = await findLineNumbers({ filePath: mockFilePath, snippet: 'any' }, { fs: testFs as any, path });
 
-    const parsedResult = JSON.parse(result.content[0].text);
+    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
     expect(parsedResult.error).toBe('File not found');
   });
 
@@ -104,12 +110,12 @@ describe('findLineNumbers', () => {
     const mockFilePath = '../../../../etc/passwd';
     const testFs = {
       ...mockFs,
-      realpath: () => path.resolve(CWD, mockFilePath),
+      realpath: () => Promise.resolve(path.resolve(CWD, mockFilePath)),
     };
 
     const result = await findLineNumbers({ filePath: mockFilePath, snippet: 'any' }, { fs: testFs as any, path });
 
-    const parsedResult = JSON.parse(result.content[0].text);
+    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
     expect(parsedResult.error).toBe('File path is outside of the current working directory.');
   });
 
@@ -117,12 +123,12 @@ describe('findLineNumbers', () => {
     const mockFilePath = 'symlink-to-etc-passwd';
     const testFs = {
       ...mockFs,
-      realpath: () => '/etc/passwd',
+      realpath: () => Promise.resolve('/etc/passwd'),
     };
 
     const result = await findLineNumbers({ filePath: mockFilePath, snippet: 'any' }, { fs: testFs as any, path });
 
-    const parsedResult = JSON.parse(result.content[0].text);
+    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
     expect(parsedResult.error).toBe('File path is outside of the current working directory.');
   });
 });
