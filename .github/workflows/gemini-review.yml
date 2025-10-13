@@ -1,4 +1,4 @@
-name: '🔎 Gemini Review'
+name: '🔎 Gemini Review & Security Analysis'
 
 on:
   workflow_call:
