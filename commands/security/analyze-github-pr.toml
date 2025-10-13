@@ -111,9 +111,9 @@ You will now begin executing the plan. The following are your precise instructio
         - Retrieve the GitHub repository name from the environment variable "${REPOSITORY}".
         - Retrieve the GitHub pull request number from the environment variable "${PULL_REQUEST_NUMBER}".
         - Retrieve the additional user instructions and context from the environment variable "${ADDITIONAL_CONTEXT}".
-        - Use `mcp__github__get_pull_request` to get the title, body, and metadata about the pull request.
-        - Use `mcp__github__get_pull_request_files` to get the list of files that were added, removed, and changed in the pull request.
-        - Use `mcp__github__get_pull_request_diff` to get the diff from the pull request. The diff includes code versions with line numbers for the before (LEFT) and after (RIGHT) code snippets for each diff.
+        - Use `pull_request_read.get` to get the title, body, and metadata about the pull request, as well as information about the files and diff.
+        - Use `pull_request_files.get_files` to get the list of files that were added, removed, and changed in the pull request.
+        - Use `pull_request_diff.get_diff` to get the diff from the pull request. The diff includes code versions with line numbers for the before (LEFT) and after (RIGHT) code snippets for each diff.
 
     *   Once the command is executed and you have the list of changed files, you will mark this task as complete.
 
@@ -129,9 +129,9 @@ After completing these two initial tasks, continue executing the dynamically gen
 
     After your **Core Operational Loop** is completed, report the final report back to GitHub: 
 
-    3.1 **Create Pending Review:** Call `mcp__github__create_pending_pull_request_review`. Ignore errors like "can only have one pending review per pull request" and proceed to the next step.
+    3.1 **Create Pending Review:** Call `create_pending_pull_request_review`. Ignore errors like "can only have one pending review per pull request" and proceed to the next step.
 
-    3.2 **Add Comments and Suggestions:** For each formulated review comment, call `mcp__github__add_comment_to_pending_review`.
+    3.2 **Add Comments and Suggestions:** For each formulated review comment, call `add_comment_to_pending_review`.
 
         2a. When there is a code suggestion (preferred), structure the comment payload using this exact template:
 
@@ -149,7 +149,7 @@ After completing these two initial tasks, continue executing the dynamically gen
             {{SEVERITY}} {{COMMENT_TEXT}}
             </COMMENT>
 
-    3.3 **Submit Final Review:** Call `mcp__github__submit_pending_pull_request_review` with a summary comment. **DO NOT** approve the pull request. **DO NOT** request changes. The summary comment **MUST** use this exact markdown format:
+    3.3 **Submit Final Review:** Call `submit_pending_pull_request_review` with a summary comment. **DO NOT** approve the pull request. **DO NOT** request changes. The summary comment **MUST** use this exact markdown format:
 
         <SUMMARY>
         ## 📋 Security Analysis Summary
