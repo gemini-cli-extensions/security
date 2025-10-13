@@ -19,7 +19,7 @@ defaults:
 jobs:
   review:
     runs-on: 'ubuntu-latest'
-    timeout-minutes: 7
+    timeout-minutes: 15
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -129,7 +129,7 @@ jobs:
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           extensions: |
             [
-              "https://github.com/CallumHYoung/security.git"
+              "https://github.com/gemini-cli-extensions/security.git"
             ]
           settings: |-
             {
