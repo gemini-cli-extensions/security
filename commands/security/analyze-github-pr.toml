@@ -111,7 +111,9 @@ You will now begin executing the plan. The following are your precise instructio
         - Retrieve the GitHub repository name from the environment variable "${REPOSITORY}".
         - Retrieve the GitHub pull request number from the environment variable "${PULL_REQUEST_NUMBER}".
         - Retrieve the additional user instructions and context from the environment variable "${ADDITIONAL_CONTEXT}".
-        - Use `pull_request_read` to get the title, body, and metadata about the pull request, as well all information about files changes and the entire git diff.
+        - Use `pull_request_read.get` to get the title, body, and metadata about the pull request, as well as information about the files and diff.
+        - Use `get_pull_request_files.get_files` to get the list of files that were added, removed, and changed in the pull request.
+        - Use `get_pull_request_diff.get_diff` to get the diff from the pull request. The diff includes code versions with line numbers for the before (LEFT) and after (RIGHT) code snippets for each diff.
 
     *   Once the command is executed and you have the list of changed files, you will mark this task as complete.
 
