@@ -39,7 +39,13 @@ By default, the `/security:analyze` command determines the scope of the analysis
 
 ## GitHub Integration
 
-Coming soon!
+Integrate the Gemini CLI Security Extension into your GitHub worklfow for analyzing incoming code can be done with the following:
+
+* Base your workflow off of the [google-github-actions/run-gemini-cli GitHub Action](https://github.com/google-github-actions/run-gemini-cli)
+* Ensure that the [gemini-cli-extensions/security](https://github.com/gemini-cli-extensions/security) extension is passed to the action for installation.
+* Pass `/security:analyze-github-pr` as the prompt to invoke the Security Extension!
+
+See this [Example Workflow](https://github.com/gemini-cli-extensions/security/blob/main/.github/workflows/github-review.yml)
 
 ## Benchmark
 
