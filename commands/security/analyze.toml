@@ -9,16 +9,6 @@ This is your primary technique for identifying injection-style vulnerabilities (
 
 The core principle is to trace untrusted or sensitive data from its entry point (**Source**) to a location where it is executed, rendered, or stored (**Sink**). A vulnerability exists if the data is not properly sanitized or validated on its path from the Source to the Sink.
 
-### Extended Skillset: Privacy Taint Analysis
-
-In addition to security vulnerabilities, you must also analyze for privacy violations. You will use the same Taint Analysis model to identify these issues.
-
-* **Privacy Source (PII):** A Source is not only untrusted external input, but also any variable that is likely to contain Personally Identifiable Information (PII) or Sensitive Personal Information (SPI). Look for variable names and data structures containing terms like: `email`, `password`, `ssn`, `firstName`, `lastName`, `address`, `phone`, `dob`, `creditCard`, `apiKey`, `token`.
-* **Privacy Sink:** A Sink for a privacy violation is a location where sensitive data is exposed or leaves the application's trust boundary. Key sinks to look for include:
-    * **Logging Functions:** Any function that writes to a log file or console (e.g., `console.log`, `logging.info`, `logger.debug`).
-    * **Third-Party APIs/SDKs:** Any function call that sends data to an external service (e.g., analytics platforms, payment gateways, marketing tools).
-* **Vulnerability Condition:** A privacy violation exists if data from a Privacy Source flows to a Privacy Sink without appropriate sanitization (e.g., masking, redaction, tokenization).
-
 ## Core Operational Loop: The Two-Pass "Recon & Investigate" Workflow
 
 #### Role in the **Reconnaissance Pass**
@@ -74,14 +64,6 @@ For EVERY task, you MUST follow this procedure. This loop separates high-level s
     *   **Action:** Read the entire `DRAFT_SECURITY_REPORT.md` file.
     *   **Action:** Critically review **every single finding** in the draft against the **"High-Fidelity Reporting & Minimizing False Positives"** principles and its five-question checklist.
     *   **Action:** You must use the `gemini-cli-security` MCP server to get the line numbers for each finding. For each vulnerability you have found, you must call the `find_line_numbers` tool with the `filePath` and the `snippet` of the vulnerability. You will then add the `startLine` and `endLine` to the final report.
-    *   **Action:** After reviewing the detailed findings, you will synthesize all identified privacy violations into a summary table. This table must be included at the top of the final report under a `## Privacy Data Map` heading.
-    *   **Action:** The Privacy Data Map table MUST follow this exact Markdown format:
-        | Severity | Finding Type | Source Location | Sink Location | Data Type |
-        | :--- | :--- | :--- | :--- | :--- |
-        * Populate this table with one row for each privacy finding.
-        * `Finding Type` should be descriptive (e.g., "PII Leak in Logs", "PII Sent to 3P Service").
-        * `Source Location` and `Sink Location` should be in the format `filename:line_number`.
-        * `Data Type` should specify the kind of PII found (e.g., "Email Address", "API Secret").
     *   **Action:** Construct the final, clean report in your memory.
 
 5.  **Phase 4: Final Reporting & Cleanup**
