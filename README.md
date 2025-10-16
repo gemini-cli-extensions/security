@@ -41,12 +41,11 @@ By default, the `/security:analyze` command determines the scope of the analysis
 
 Integrate the Gemini CLI Security Extension into your GitHub workflow to analyze incoming code:
 
-* Create a `.github` folder in the repository root directory
-* Use the [google-github-actions/run-gemini-cli GitHub Action](https://github.com/google-github-actions/run-gemini-cli) to enable Gemini CLI in your GitHub workflow.
-* Ensure that the [gemini-cli-extensions/security](https://github.com/gemini-cli-extensions/security) extension is passed to the action for installation.
-* Use `/security:analyze-github-pr` as the prompt to invoke the Security Extension!
-
-You can also just copy this [Example Workflow](https://github.com/gemini-cli-extensions/security/blob/main/.github/workflows/gemini-review.yml) into your repository.
+* Follow Steps 1-3 in this [Quick Start](https://github.com/google-github-actions/run-gemini-cli?tab=readme-ov-file#quick-start)
+* Add a `.github` folder to the repository root, and a `workflows` folder nested inside of `.github`
+* Copy this [Example Workflow](https://github.com/gemini-cli-extensions/security/blob/main/.github/workflows/gemini-review.yml) into the `workflows` folder
+* Ensure `.github/workflows/<workflow>` is pushed to GitHub
+* Open a PR, or manually call `@gemini-cli /review` to run Gemini CLI Code Review along with Security Analysis
 
 ## Benchmark
 
