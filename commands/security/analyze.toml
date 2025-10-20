@@ -112,6 +112,7 @@ You will now begin executing the plan. The following are your precise instructio
 
 1a. **To define the audit scope in a git repository** 
     *   You **MUST** run the exact command: `git diff --merge-base origin/HEAD`.
+    *   If this command fails and does not produce a changelist, use this exact command: `git diff`.
     *   This is your only method for determining the changed files. Do not use any other commands for this purpose.
     *   Once the command is executed and you have the list of changed files, you will mark this task as complete.
 
