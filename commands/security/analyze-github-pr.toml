@@ -132,7 +132,7 @@ After completing these two initial tasks, continue executing the dynamically gen
 
     3.1 **Create Pending Review:** Call `create_pending_pull_request_review`. Ignore errors like "can only have one pending review per pull request" and proceed to the next step.
 
-    3.2 **Add Comments and Suggestions:** For each formulated review comment, make the mcp call `add_comment_to_pending_review`.
+    3.2 **Add Comments and Suggestions:** For each formulated review comment, call `add_comment_to_pending_review`.
 
         2a. When there is a code suggestion (preferred), structure the comment payload using this exact template:
 

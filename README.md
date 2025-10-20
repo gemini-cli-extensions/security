@@ -39,23 +39,23 @@ By default, the `/security:analyze` command determines the scope of the analysis
 
 ## GitHub Integration
 
-### I already use run-gemini-cli workflows in my repository:
+### I already use [run-gemini-cli](https://github.com/google-github-actions/run-gemini-cli) workflows in my repository:
 
 * Replace your existing `gemini-review.yml` with this [updated workflow](https://github.com/gemini-cli-extensions/security/blob/main/.github/workflows/gemini-review.yml), which includes the new Security Analysis step.
 
-### I don't use run-gemini-cli workflows in my repository yet:
+### I don't use [run-gemini-cli](https://github.com/google-github-actions/run-gemini-cli) workflows in my repository yet:
 
 1. Integrate the Gemini CLI Security Extension into your GitHub workflow to analyze incoming code:
 
-1. Follow Steps 1-3 in this [Quick Start](https://github.com/google-github-actions/run-gemini-cli?tab=readme-ov-file#quick-start).
+2. Follow Steps 1-3 in this [Quick Start](https://github.com/google-github-actions/run-gemini-cli?tab=readme-ov-file#quick-start).
 
-1. Create a `.github/workflows` directory in your repository's root (if it doesn't already exist).
+3. Create a `.github/workflows` directory in your repository's root (if it doesn't already exist).
 
-1. Copy this [Example Workflow](https://github.com/gemini-cli-extensions/security/blob/main/.github/workflows/gemini-review.yml) into the `.github/workflows` directory.
+4. Copy this [Example Workflow](https://github.com/gemini-cli-extensions/security/blob/main/.github/workflows/gemini-review.yml) into the `.github/workflows` directory. See the run-gemini-cli [configuration](https://github.com/google-github-actions/run-gemini-cli?tab=readme-ov-file#configuration) to make changes to the workflow.
 
-1. Ensure the new workflow file is committed and pushed to GitHub.
+5. Ensure the new workflow file is committed and pushed to GitHub.
 
-1. Open a new pull request, or comment `@gemini-cli /review` on an existing PR, to run the Gemini CLI Code Review along with Security Analysis.
+6. Open a new pull request, or comment `@gemini-cli /review` on an existing PR, to run the Gemini CLI Code Review along with Security Analysis.
 
 ## Benchmark
 
