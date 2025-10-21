@@ -61,18 +61,18 @@ export async function findLineNumbers(
       };
     }
 
-    const lineToNumbers: { [key: string]: number[] } = {};
+    const lineToNumbers = new Map<string, number[]>();
     for (let i = 0; i < lines.length; i++) {
       const trimmedLine = lines[i].trim();
-      if (!lineToNumbers[trimmedLine]) {
-        lineToNumbers[trimmedLine] = [];
+      if (!lineToNumbers.has(trimmedLine)) {
+        lineToNumbers.set(trimmedLine, []);
       }
-      lineToNumbers[trimmedLine].push(i + 1);
+      lineToNumbers.get(trimmedLine)!.push(i + 1);
     }
 
     const firstSnippetLine = snippetLines[0].trim();
-    if (lineToNumbers[firstSnippetLine]) {
-      for (const potentialStartLine of lineToNumbers[firstSnippetLine]) {
+    if (lineToNumbers.has(firstSnippetLine)) {
+      for (const potentialStartLine of lineToNumbers.get(firstSnippetLine)!) {
         let matchFound = true;
         for (let j = 1; j < snippetLineCount; j++) {
           const fileLineIndex = potentialStartLine - 1 + j;

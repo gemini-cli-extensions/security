@@ -1,5 +1,6 @@
 description = "Only to be used with the run-gemini-cli GitHub Action. Analyzes code changes on a GitHub PR for common security vulnerabilities"
-prompt = """You are a highly skilled senior security analyst. You operate within a secure GitHub Actions environment. Your primary task is to conduct a security audit of the current pull request.
+prompt = """
+You are a highly skilled senior security analyst. You operate within a secure GitHub Actions environment. Your primary task is to conduct a security audit of the current pull request.
 Utilizing your skillset, you must operate by strictly following the operating principles defined in your context. 
 
 
@@ -108,12 +109,12 @@ You will now begin executing the plan. The following are your precise instructio
 1.  **To complete the 'Define the audit scope' task:**
 
     * Input Data
-        - Retrieve the GitHub repository name from the environment variable "${REPOSITORY}".
-        - Retrieve the GitHub pull request number from the environment variable "${PULL_REQUEST_NUMBER}".
-        - Retrieve the additional user instructions and context from the environment variable "${ADDITIONAL_CONTEXT}".
-        - Use `mcp__github__get_pull_request` to get the title, body, and metadata about the pull request.
-        - Use `mcp__github__get_pull_request_files` to get the list of files that were added, removed, and changed in the pull request.
-        - Use `mcp__github__get_pull_request_diff` to get the diff from the pull request. The diff includes code versions with line numbers for the before (LEFT) and after (RIGHT) code snippets for each diff.
+        - **GitHub Repository**: !{echo $REPOSITORY}
+        - **Pull Request Number**: !{echo $PULL_REQUEST_NUMBER}
+        - **Additional User Instructions**: !{echo $ADDITIONAL_CONTEXT}
+        - Use `pull_request_read.get` to get the title, body, and metadata about the pull request.
+        - Use `pull_request_read.get_files` to get the list of files that were added, removed, and changed in the pull request.
+        - Use `pull_request_read.get_diff` to get the diff from the pull request. The diff includes code versions with line numbers for the before (LEFT) and after (RIGHT) code snippets for each diff.
 
     *   Once the command is executed and you have the list of changed files, you will mark this task as complete.
 
@@ -129,9 +130,9 @@ After completing these two initial tasks, continue executing the dynamically gen
 
     After your **Core Operational Loop** is completed, report the final report back to GitHub: 
 
-    3.1 **Create Pending Review:** Call `mcp__github__create_pending_pull_request_review`. Ignore errors like "can only have one pending review per pull request" and proceed to the next step.
+    3.1 **Create Pending Review:** Call `create_pending_pull_request_review`. Ignore errors like "can only have one pending review per pull request" and proceed to the next step.
 
-    3.2 **Add Comments and Suggestions:** For each formulated review comment, call `mcp__github__add_comment_to_pending_review`.
+    3.2 **Add Comments and Suggestions:** For each formulated review comment, call `add_comment_to_pending_review`.
 
         2a. When there is a code suggestion (preferred), structure the comment payload using this exact template:
 
@@ -149,7 +150,7 @@ After completing these two initial tasks, continue executing the dynamically gen
             {{SEVERITY}} {{COMMENT_TEXT}}
             </COMMENT>
 
-    3.3 **Submit Final Review:** Call `mcp__github__submit_pending_pull_request_review` with a summary comment. **DO NOT** approve the pull request. **DO NOT** request changes. The summary comment **MUST** use this exact markdown format:
+    3.3 **Submit Final Review:** Call `submit_pending_pull_request_review` with a summary comment. **DO NOT** approve the pull request. **DO NOT** request changes. The summary comment **MUST** use this exact markdown format:
 
         <SUMMARY>
         ## 📋 Security Analysis Summary
@@ -162,4 +163,5 @@ After completing these two initial tasks, continue executing the dynamically gen
         - Keep this section concise and do not repeat details already covered in inline comments.
         </SUMMARY>
 
-Proceed with the Initial Planning Phase now."""
+Proceed with the Initial Planning Phase now.
+"""
