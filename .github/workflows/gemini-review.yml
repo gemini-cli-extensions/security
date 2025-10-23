@@ -40,7 +40,7 @@ jobs:
           permission-contents: 'read'
           permission-issues: 'write'
           permission-pull-requests: 'write'
-    
+
       - name: 'Acknowledge request'
         env:
           GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
@@ -65,6 +65,7 @@ jobs:
           ISSUE_BODY: '${{ github.event.pull_request.body || github.event.issue.body }}'
           PULL_REQUEST_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
+          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
         with:
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
@@ -77,14 +78,16 @@ jobs:
           google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+          upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
           settings: |-
             {
               "model": {
                 "maxSessionTurns": 25
               },
               "telemetry": {
-                "enabled": ${{ vars.GOOGLE_CLOUD_PROJECT != '' }},
-                "target": "gcp"
+                "enabled": true,
+                "target": "local",
+                "outfile": ".gemini/telemetry.log"
               },
               "mcpServers": {
                 "github": {
@@ -95,7 +98,7 @@ jobs:
                     "--rm",
                     "-e",
                     "GITHUB_PERSONAL_ACCESS_TOKEN",
-                    "ghcr.io/github/github-mcp-server"
+                    "ghcr.io/github/github-mcp-server:v0.18.0"
                   ],
                   "includeTools": [
                     "add_comment_to_pending_review",
@@ -128,6 +131,7 @@ jobs:
           ISSUE_BODY: '${{ github.event.pull_request.body || github.event.issue.body }}'
           PULL_REQUEST_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
+          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
         with:
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
@@ -140,6 +144,7 @@ jobs:
           google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+          upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
           extensions: |
             [
               "https://github.com/gemini-cli-extensions/security.git"
@@ -150,8 +155,9 @@ jobs:
                 "maxSessionTurns": 100
               },
               "telemetry": {
-                "enabled": ${{ vars.GOOGLE_CLOUD_PROJECT != '' }},
-                "target": "gcp"
+                "enabled": true,
+                "target": "local",
+                "outfile": ".gemini/telemetry.log"
               },
               "mcpServers": {
                 "github": {
@@ -162,7 +168,7 @@ jobs:
                     "--rm",
                     "-e",
                     "GITHUB_PERSONAL_ACCESS_TOKEN",
-                    "ghcr.io/github/github-mcp-server"
+                    "ghcr.io/github/github-mcp-server:v0.18.0"
                   ],
                   "includeTools": [
                     "add_comment_to_pending_review",
