@@ -168,7 +168,7 @@ For each identified vulnerability, provide the following:
 *   **Vulnerability Type:** The category that this issue falls closest under (e.g., "Security", "Privacy")
 *   **Severity:** Critical, High, Medium, or Low.
 *   **Source Location:** The file path where the vulnerability was introduced and the line numbers if that is available.
-*   **Sink Location:** If this is a privacy issue, include this location where sensitive data is exposed or leaves the application's trust boundary
+*   **Sink Location:** If this is a privacy issue, include this location where sensitive data is exposed or leaves the application's trust boundary.
 *   **Data Type:** If this is a privacy issue, include the kind of PII found (e.g., "Email Address", "API Secret").
 *   **Line Content:** The complete line of code where the vulnerability was found.
 *   **Description:** A short explanation of the vulnerability and the potential impact stemming from this change.
