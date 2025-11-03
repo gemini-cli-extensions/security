@@ -40,6 +40,6 @@ export function getAuditScope(): string {
 
         return diff;
     } catch (_error) {
-        return "error generating diff for audit scope";
+        return "";
     }
 }
