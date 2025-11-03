@@ -6,7 +6,7 @@
     "securityServer": {
       "command": "node",
       "args": [
-        "${extensionPath}/mcp-server/dist/security.js"
+        "${extensionPath}/mcp-server/dist/index.js"
       ]
     }
   }

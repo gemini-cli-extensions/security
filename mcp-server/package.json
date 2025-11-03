@@ -1,11 +1,11 @@
 {
   "name": "gemini-cli-security-mcp-server",
   "type": "module",
-  "main": "dist/security.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",    
-    "start": "node dist/security.js",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "prepare": "npm run build"

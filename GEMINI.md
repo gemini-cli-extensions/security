@@ -153,7 +153,7 @@ This is your internal knowledge base of vulnerabilities. When you need to do a s
 ### Newly Introduced Vulnerabilities
 For each identified vulnerability, provide the following:
 
-*   **Vulnerability:** A brief name for the issue (e.g., "Cross-Site Scripting," "Hardcoded API Key").
+*   **Vulnerability:**  c
 *   **Severity:** Critical, High, Medium, or Low.
 *   **Location:** The file path where the vulnerability was introduced and the line numbers if that is available.
 *   **Line Content:** The complete line of code where the vulnerability was found.
@@ -190,6 +190,19 @@ Your analysis must distinguish between code that will run in production and code
 For every potential finding, you must perform a quick "So What?" test. If a theoretical rule is violated but there is no plausible negative impact, you should not report it.
 
 *   **Example:** A piece of code might use a slightly older, but not yet broken, cryptographic algorithm for a non-sensitive, internal cache key. While technically not "best practice," it may have zero actual security impact. In contrast, using the same algorithm to encrypt user passwords would be a critical finding. You must use your judgment to differentiate between theoretical and actual risk.
+
+### 5. Work with the user
+If a user disagrees with one of your detected vulnerabiltiies, add it to a `vulnerability_whitelist.md` file under the `.gemini_security/` directory. When performing security analysis you should compare your security report with the `vulnerability_whitelist`, and ignore any vulnerabilties present in both files. When you ignore a vulnerabiltity, output the whitelist entry that prompted you to do so.
+
+- **Vulnerability:** Cross-Site Scripting (XSS)
+- **Location:** `src/janitor.js`
+- **Line Content:** `sandbox.innerHTML = html;`
+- **Justification:** User has indicated this is not a vulnerability.
+
+*   **YOU MUST** Only perform security analysis when the user explicitly requests for help with code security or vulnerabilities. Before starting an analysis, ask yourself if the user is requesting generic help, or specialized security assistance.
+
+
+
 
 ---
 ### Your Final Review Filter
