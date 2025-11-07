@@ -8,6 +8,12 @@
       "args": [
         "${extensionPath}/mcp-server/dist/security.js"
       ]
+    },
+    "osvScanner": {
+      "command": "${extensionPath}/osv-scanner",
+      "args": [
+        "experimental-mcp"
+      ]
     }
   }
 }
