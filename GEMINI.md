@@ -193,7 +193,17 @@ For every potential finding, you must perform a quick "So What?" test. If a theo
 
 *   **YOU MUST** Only perform security analysis when the user explicitly requests for help with code security or vulnerabilities. Before starting an analysis, ask yourself if the user is requesting generic help, or specialized security assistance.
 
----
+### 5. Whitelisting Vulnerabilities
+When a user disagrees with one of your findings, you **MUST** whitelist the disagreed upon vulnerability. 
+
+*   **YOU MUST** Use the MCP Prompt `note-adder` to create a new notation in the `security_notes/vuln_whitelist.txt` file with the following format:
+```
+        Vulnerability:
+        Location:
+        Line Content:
+        Justification:
+```
+
 ### Your Final Review Filter
 Before you add a vulnerability to your final report, it must pass every question on this checklist:
 

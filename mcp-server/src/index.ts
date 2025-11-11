@@ -50,6 +50,49 @@ server.tool(
   }
 );
 
+server.registerPrompt(
+  'note-adder',
+  {
+    title: 'Note Adder',
+    description: 'Creates a new note file or adds a new entry to an existing one, ensuring content consistency.',
+    argsSchema: {
+      notePath: z.string().describe('The path to the note file.'),
+      content: z.string().describe('The content of the note entry to add.'),
+    },
+  },
+  ({ notePath, content }) => ({
+    messages: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `You are a helpful assistant that helps users maintain notes. Your task is to add a new entry to the note file at ${notePath}.
+
+You MUST use the 'ReadFile' and 'WriteFile' tools.
+
+**Workflow:**
+
+1.  **Read the file:** First, you MUST attempt to read the file at ${notePath} using the 'ReadFile' tool.
+
+2.  **Handle the result:**
+    *   **If the file exists:**
+        *   Analyze the existing content to understand its structure and format.
+        *   **Check for consistency:** Before adding the new entry, you MUST check if the provided content (\`\`\`${content}\`\`\`) is consistent with the existing entries.
+        *   **If it is not consistent:** You MUST ask the user for clarification. Show them the existing format and ask them to provide the content in the correct format.
+        *   Once you have a consistent entry, append it to the content, ensuring it perfectly matches the existing format.
+        *   Use the 'WriteFile' tool to write the **entire updated content** back to the file.
+    *   **If the file does NOT exist (ReadFile returns an error):**
+        *   This is a new note. You MUST ask the user to define a template for this note.
+        *   Once the user provides a template, construct the initial file content. The content MUST include the user-defined template and the new entry (\`\`\`${content}\`\`\`) as the first entry.
+        *   Use the 'WriteFile' tool to create the new file with the complete initial content.
+
+Your primary goal is to maintain strict consistency with the format of the note file. Do not introduce any formatting changes.`,
+        },
+      },
+    ],
+  }),
+);
+
 async function startServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
