@@ -107,7 +107,7 @@ You will now begin executing the plan. The following are your precise instructio
 
 1.  **To complete the 'Define the audit scope' task:**
     *   You **MUST** use the `get_audit_scope` tool and nothing else to get a list of changed files to perform a security scan on. 
-    *   After using the tool, provide the user a list of changed files, and ask if there are any additional files they would like to scan, or if there are any they would like to exclude from this scan.
+    *   After using the tool, provide the user a list of changed files. If the list of files is empty, ask the user to provide files to be scanned.
 
 2.  **Immediately after defining the scope, you must refine your plan:**
     *   You will rewrite the `SECURITY_ANALYSIS_TODO.md` file.

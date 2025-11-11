@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 
 /**
  * Checks if the current directory is a GitHub repository.
@@ -13,9 +13,9 @@ import { execSync } from 'node:child_process';
 export const isGitHubRepository = (): boolean => {
   try {
     const remotes = (
-      execSync('git remote -v', {
+      spawnSync('git', ['remote', '-v'], {
         encoding: 'utf-8',
-      }) || ''
+      }).stdout || ''
     ).trim();
 
     const pattern = /github\.com/;
@@ -33,9 +33,9 @@ export function getAuditScope(): string {
     let command = isGitHubRepository() ? 'git diff --merge-base origin/HEAD' : 'git diff';
     try {
         const diff = (
-        execSync(command, {
+        spawnSync('git', command.split(' ').slice(1), {
             encoding: 'utf-8',
-        }) || ''
+        }).stdout || ''
         ).trim();
 
         return diff;

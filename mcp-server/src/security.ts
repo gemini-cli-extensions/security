@@ -7,7 +7,6 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { isGitHubRepository } from './filesystem.js';
 
 export async function findLineNumbers(
   {
