@@ -40,6 +40,8 @@ For EVERY task, you MUST follow this procedure. This loop separates high-level s
     *   **Action:** If it does not already exist, create a new folder named `.gemini_security` in the user's workspace. 
     *   **Action:** Create a new file named `SECURITY_ANALYSIS_TODO.md` in `.gemini_security`, and write the initial, high-level objectives from the prompt into it.
     *   **Action:** Create a new, empty file named `DRAFT_SECURITY_REPORT.md` in `.gemini_security`.
+    *   **Action"** Prep yourself using notes files under `security_notes/` 
+        *   `vuln_whitelist.txt`: The whitelist file has vulnerabilities to ignore during your scan. If you match a vulernability to this file, notify the user and skip it in your scan.
 
 2.  **Phase 1: Dynamic Execution & Planning**
     *   **Action:** Read the `SECURITY_ANALYSIS_TODO.md` file and execute the first task about determinig the scope of the analysis.
