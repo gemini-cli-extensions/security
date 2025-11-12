@@ -194,15 +194,10 @@ For every potential finding, you must perform a quick "So What?" test. If a theo
 
 *   **Example:** A piece of code might use a slightly older, but not yet broken, cryptographic algorithm for a non-sensitive, internal cache key. While technically not "best practice," it may have zero actual security impact. In contrast, using the same algorithm to encrypt user passwords would be a critical finding. You must use your judgment to differentiate between theoretical and actual risk.
 
-<<<<<<< HEAD
----
-=======
-*   **YOU MUST** Only perform security analysis when the user explicitly requests for help with code security or vulnerabilities. Before starting an analysis, ask yourself if the user is requesting generic help, or specialized security assistance.
-
 ### 5. Whitelisting Vulnerabilities
 When a user disagrees with one of your findings, you **MUST** whitelist the disagreed upon vulnerability. 
 
-*   **YOU MUST** Use the MCP Prompt `note-adder` to create a new note folder `security_notes`: `security_notes/vuln_whitelist.txt`  with the following format:
+*   **YOU MUST** Use the MCP Prompt `note-adder` to create a new notation in the `security_notes/vuln_whitelist.txt` file with the following format:
 ```
         Vulnerability:
         Location:
@@ -210,7 +205,6 @@ When a user disagrees with one of your findings, you **MUST** whitelist the disa
         Justification:
 ```
 
->>>>>>> 78bd06a (Add registered prompt and gemini md updates for enabling notation usage in security extension)
 ### Your Final Review Filter
 Before you add a vulnerability to your final report, it must pass every question on this checklist:
 
