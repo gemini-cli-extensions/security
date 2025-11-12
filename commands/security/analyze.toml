@@ -106,21 +106,8 @@ Your first action is to create a `SECURITY_ANALYSIS_TODO.md` file with the follo
 You will now begin executing the plan. The following are your precise instructions to start with.
 
 1.  **To complete the 'Define the audit scope' task:**
-    *   You **MUST** run the exact command: `git rev-parse --is-inside-work-tree`.
-    *   If the above command succeeds, returning true: then proceed to step 1a.
-    *   If the above command fails, producing a fatal error: then proceed to step 1b.
-
-1a. **To define the audit scope in a git repository** 
-    *   You **MUST** run the exact command: `git diff --merge-base origin/HEAD`.
-    *   If this command fails and does not produce a changelist, use this exact command: `git diff`.
-    *   This is your only method for determining the changed files. Do not use any other commands for this purpose.
-    *   Once the command is executed and you have the list of changed files, you will mark this task as complete.
-
-1b. **To define the audit scope in a non-git folder** 
-    *   Let the user know that you were unable to generate an automatic changelist with git, so you **MUST** prompt the user for files to security scan. 
-    *   Match the users response to files in the workspace and build a list of files to analyze.
-    *   This is your only method for determining the files to analyze. Do not use any other commands for this purpose.
-    *   Once you have a list of files to analyze you will mark this task as complete.
+    *   You **MUST** use the `get_audit_scope` tool and nothing else to get a list of changed files to perform a security scan on. 
+    *   After using the tool, provide the user a list of changed files. If the list of files is empty, ask the user to provide files to be scanned.
 
 2.  **Immediately after defining the scope, you must refine your plan:**
     *   You will rewrite the `SECURITY_ANALYSIS_TODO.md` file.
