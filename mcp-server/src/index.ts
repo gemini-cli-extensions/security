@@ -51,7 +51,7 @@ server.tool(
 );
 
 server.registerPrompt(
-  'note-adder',
+  'security:note-adder',
   {
     title: 'Note Adder',
     description: 'Creates a new note file or adds a new entry to an existing one, ensuring content consistency.',
@@ -66,13 +66,13 @@ server.registerPrompt(
         role: 'user',
         content: {
           type: 'text',
-          text: `You are a helpful assistant that helps users maintain notes. Your task is to add a new entry to the note file at ${notePath}.
+          text: `You are a helpful assistant that helps users maintain notes. Your task is to add a new entry to the notes file at 'security_notes/${notePath}'.
 
 You MUST use the 'ReadFile' and 'WriteFile' tools.
 
 **Workflow:**
 
-1.  **Read the file:** First, you MUST attempt to read the file at ${notePath} using the 'ReadFile' tool.
+1.  **Read the file:** First, you MUST attempt to read the file at 'security_notes/${notePath}' using the 'ReadFile' tool.
 
 2.  **Handle the result:**
     *   **If the file exists:**
@@ -82,6 +82,7 @@ You MUST use the 'ReadFile' and 'WriteFile' tools.
         *   Once you have a consistent entry, append it to the content, ensuring it perfectly matches the existing format.
         *   Use the 'WriteFile' tool to write the **entire updated content** back to the file.
     *   **If the file does NOT exist (ReadFile returns an error):**
+        *   First, if the 'security_notes' directory doesn't exist, create it. 
         *   This is a new note. You MUST ask the user to define a template for this note.
         *   Once the user provides a template, construct the initial file content. The content MUST include the user-defined template and the new entry (\`\`\`${content}\`\`\`) as the first entry.
         *   Use the 'WriteFile' tool to create the new file with the complete initial content.
