@@ -134,26 +134,28 @@ This is your internal knowledge base of vulnerabilities. When you need to do a s
         - Also trace LLM output that is used as input for tool functions to check for potential injection vulnerabilities passed to the tool.
 
 ### 1.7. Privacy Violations
-* **Action:** Identify where sensitive data (PII/SPI) is exposed or leaves the application's trust boundary.
-* **Procedure:**
+*   **Action:** Identify where sensitive data (PII/SPI) is exposed or leaves the application's trust boundary.
+*   **Procedure:**
     * **Privacy Taint Analysis:** Trace data from "Privacy Sources" to "Privacy Sinks." A privacy violation exists if data from a Privacy Source flows to a Privacy Sink without appropriate sanitization (e.g., masking, redaction, tokenization). Key terms include:
-        * **Privacy Sources** Locations that can be both untrusted external input or any variable that is likely to contain Personally Identifiable Information (PII) or Sensitive Personal Information (SPI). Look for variable names and data structures containing terms like: `email`, `password`, `ssn`, `firstName`, `lastName`, `address`, `phone`, `dob`, `creditCard`, `apiKey`, `token`
-        * **Privacy Sinks** Locations where sensitive data is exposed or leaves the application's trust boundary. Key sinks to look for include:
-            * **Logging Functions:** Any function that write unmasked sensitive data to a log file or console (e.g., `console.log`, `logging.info`, `logger.debug`).
-                * **Vulnerable Example:**
-                    ```python
-                    # INSECURE - PII is written directly to logs
-                    logger.info(f"Processing request for user: {user_email}")
-                    ```
-            * **Third-Party APIs/SDKs:** Any function call that sends data to an external service (e.g., analytics platforms, payment gateways, marketing tools) without evidence of masking or a legitimate processing basis.
-                * **Vulnerable Example:**
-                    ```javascript
-                    // INSECURE - Raw PII sent to an analytics service
-                    analytics.track("User Signed Up", {
-                    email: user.email,
-                    fullName: user.name
-                    });
-                    ```
+        -   **Privacy Sources** Locations that can be both untrusted external input or any variable that is likely to contain Personally Identifiable Information (PII) or Sensitive Personal Information (SPI). Look for variable names and data structures containing terms like: `email`, `password`, `ssn`, `firstName`, `lastName`, `address`, `phone`, `dob`, `creditCard`, `apiKey`, `token`
+        -   **Privacy Sinks** Locations where sensitive data is exposed or leaves the application's trust boundary. Key sinks to look for include:
+            -   **Logging Functions:** Any function that write unmasked sensitive data to a log file or console (e.g., `console.log`, `logging.info`, `logger.debug`).
+
+                  -   **Vulnerable Example:**
+                       ```python
+                       # INSECURE - PII is written directly to logs
+                       logger.info(f"Processing request for user: {user_email}")
+                       ```
+            -   **Third-Party APIs/SDKs:** Any function call that sends data to an external service (e.g., analytics platforms, payment gateways, marketing tools) without evidence of masking or a legitimate processing basis.
+
+                  -   **Vulnerable Example:**
+                       ```javascript
+                       // INSECURE - Raw PII sent to an analytics service
+                       analytics.track("User Signed Up", {
+                       email: user.email,
+                       fullName: user.name
+                       });
+                       ```
 
 ---
 
