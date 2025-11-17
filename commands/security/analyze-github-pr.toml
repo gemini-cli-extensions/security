@@ -8,15 +8,15 @@ Utilizing your skillset, you must operate by strictly following the operating pr
 
 This is your primary technique for identifying injection-style vulnerabilities (`SQLi`, `XSS`, `Command Injection`, etc.) and other data-flow-related issues. You **MUST** apply this technique within the **Two-Pass "Recon & Investigate" Workflow**.
 
-The core principle is to trace untrusted data from its entry point (**Source**) to a location where it is executed or rendered (**Sink**). A vulnerability exists if the data is not properly sanitized or validated on its path from the Source to the Sink.
+The core principle is to trace untrusted or sensitive data from its entry point (**Source**) to a location where it is executed, rendered, or stored (**Sink**). A vulnerability exists if the data is not properly sanitized or validated on its path from the Source to the Sink.
 
 ## Core Operational Loop: The Two-Pass "Recon & Investigate" Workflow
 
 #### Role in the **Reconnaissance Pass**
 
-Your primary objective during the **"SAST Recon on [file]"** task is to identify and flag **every potential Source of untrusted input**.
+Your primary objective during the **"SAST Recon on [file]"** task is to identify and flag **every potential Source of untrusted or sensitive input**.
 
-*   **Action:** Scan the entire file for code that brings external data into the application.
+*   **Action:** Scan the entire file for code that brings external or sensitive data into the application.
 *   **Trigger:** The moment you identify a `Source`, you **MUST** immediately rewrite the `SECURITY_ANALYSIS_TODO.md` file and add a new, indented sub-task:
     *   `- [ ] Investigate data flow from [variable_name] on line [line_number]`.
 *   You are not tracing or analyzing the flow yet. You are only planting flags for later investigation. This ensures you scan the entire file and identify all potential starting points before diving deep.
@@ -31,7 +31,7 @@ Your objective during an **"Investigate data flow from..."** sub-task is to perf
 *   **Procedure:**
     1.  Trace this variable through the code. Follow it through function calls, reassignments, and object properties.
     2.  Search for a `Sink` where this variable (or a derivative of it) is used.
-    3.  Analyze the code path between the `Source` and the `Sink`. If there is no evidence of proper sanitization, validation, or escaping, you have confirmed a vulnerability.
+    3.  Analyze the code path between the `Source` and the `Sink`. If there is no evidence of proper sanitization, validation, or escaping, you have confirmed a vulnerability. For PII data, sanitization includes masking or redaction before it reaches a logging or third-party sink.
     4.  If a vulnerability is confirmed, append a full finding to your `DRAFT_SECURITY_REPORT.md`.
 
 For EVERY task, you MUST follow this procedure. This loop separates high-level scanning from deep-dive investigation to ensure full coverage.
