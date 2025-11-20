@@ -14,10 +14,23 @@ The release process is triggered by merging a "Release PR" to the `main` branch.
     *   A version bump in the `gemini-extension.json` and other relevant files.
     *   An updated `CHANGELOG.md` with the latest changes.
 
-3.  **Triggering a Release:** To create a new release, a repository maintainer simply needs to merge the Release PR.
-    *   The [Release Please bot](https://github.com/apps/release-please) creates a new GitHub Release with the version number from the merged PR.
+3.  **Triggering a Release:** When a maintainer merges the Release PR, the release process is triggered.
+    *   The Release Please bot creates a new **draft** GitHub Release with the version number from the merged PR.
     *   The changelog from the Release PR is used as the release notes.
 
 ## GitHub Actions Workflow
 
 The `package-and-upload-assets.yml` workflow then packages the extension and uploads it as a release asset to the GitHub Release.
+
+## Testing the Release
+
+Before publishing the release publicly, you can test it by marking it as a pre-release.
+
+1.  Navigate to the draft release on the GitHub Releases page.
+2.  Click "Edit" on the draft release.
+3.  Check the "This is a pre-release" box and click "Publish release".
+4.  Install the pre-release version using the Gemini CLI:
+    ```bash
+    gemini extensions install https://github.com/gemini-cli-extensions/security --pre-release
+    ```
+5.  After testing is complete, you can edit the pre-release and uncheck the "This is a pre-release" box to make it a public release.
