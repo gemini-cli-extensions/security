@@ -1,5 +1,9 @@
 name: Package and Upload Release Assets
 
+# Global variables
+env:
+  FILES_TO_PACKAGE: "gemini-extension.json GEMINI.md LICENSE commands/ mcp-server/"
+
 on:
   release:
     types: [created]
@@ -12,12 +16,9 @@ on:
         required: true
         type: string
 
-permissions:
-  # This permission is required for the action to create a GitHub Release
-  contents: write
-
 jobs:
-  build-and-package:
+  # Build the MCP server and uploads the entire workspace as an artifact for the next job
+  build:
     runs-on: ubuntu-latest
     steps:
       # 1. Checks out your repository's code
@@ -36,22 +37,149 @@ jobs:
       # 3. Install MCP server dependencies
       # The MCP server needs its dependencies bundled in the release
       - name: Install MCP server dependencies
-        run: cd mcp-server && npm ci
+        working-directory: ./mcp-server
+        run: npm ci
 
       # 4. Runs your build script
       - name: Run build
-        run: cd mcp-server && npm run build
+        working-directory: ./mcp-server
+        run: npm run build
 
-      # 5. Create TAR archive with MCP server dependencies
-      # Exclude root node_modules but INCLUDE mcp-server/node_modules
-      - name: Create TAR archive
-        run: tar -cvzf ../security-release.tar.gz --exclude='.git' --exclude='.github' --exclude='./assets' . && mv ../security-release.tar.gz .
+      # 5. Upload build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: .
 
-      # 6. Upload the TAR archive as a release asset
-      - name: Upload archive to GitHub Release
+  # Downloads OSV scanner and packages release archives.
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        platform:
+          - { os: "linux", archive_name: "linux.x64.security.tar.gz", source_binary: "osv-scanner_linux_amd64", output_binary: "osv-scanner" }
+          - { os: "darwin", archive_name: "darwin.x64.security.tar.gz", source_binary: "osv-scanner_darwin_amd64", output_binary: "osv-scanner" }
+          - { os: "darwin", archive_name: "darwin.arm64.security.tar.gz", source_binary: "osv-scanner_darwin_arm64", output_binary: "osv-scanner" }
+          - { os: "win32", archive_name: "win32.x64.security.zip", source_binary: "osv-scanner_windows_amd64.exe", output_binary: "osv-scanner.exe" }
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .
+
+      # Determine OSV scanner version and record it in `tag`
+      - name: Get latest OSV scanner version
+        id: osv_scanner_version
+        run: |
+          LATEST_TAG=$(curl -sSLf "https://api.github.com/repos/google/osv-scanner/releases/latest" | jq -r .tag_name)
+          echo "tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
+      
+      - name: Download OSV scanner binary
+        env:
+          SOURCE_BINARY: ${{ matrix.platform.source_binary }}
+          OSV_SCANNER_VERSION: ${{ steps.osv_scanner_version.outputs.tag }}
+        run: |
+          DOWNLOAD_URL="https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}/${SOURCE_BINARY}"
+          
+          echo "Downloading binary from: ${DOWNLOAD_URL}"
+          curl -Lf -o "${SOURCE_BINARY}" "${DOWNLOAD_URL}"
+          chmod +x ${SOURCE_BINARY}
+          
+          echo "Binary downloaded and prepared."
+          ls -l
+
+      - name: Install slsa-verifier
+        uses: slsa-framework/slsa-verifier/actions/installer@v2.7.1
+
+      - name: Verify OSV scanner binary
+        env:
+          SOURCE_BINARY: ${{ matrix.platform.source_binary }}
+          OSV_SCANNER_VERSION: ${{ steps.osv_scanner_version.outputs.tag }}
+        run: |
+          PROVENANCE_URL="https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}/multiple.intoto.jsonl"
+
+          echo "Downloading provenance from: ${PROVENANCE_URL}"
+          curl -Lf -o multiple.intoto.jsonl "${PROVENANCE_URL}"
+
+          echo "Verifying binary with slsa-verifier"
+          slsa-verifier verify-artifact \
+            "${SOURCE_BINARY}" \
+            --provenance-path multiple.intoto.jsonl \
+            --source-uri "github.com/google/osv-scanner" \
+            --source-tag "${OSV_SCANNER_VERSION}"
+
+      - name: Create release archive
+        id: create_archive
+        env:
+          ARCHIVE_NAME: ${{ matrix.platform.archive_name }}
+          SOURCE_BINARY: ${{ matrix.platform.source_binary }}
+          OS_PLATFORM: ${{ matrix.platform.os }}
+          OUTPUT_BINARY: ${{ matrix.platform.output_binary }}
+        run: |
+          echo "Packaging ${SOURCE_BINARY} and extension contents into ${ARCHIVE_NAME}"
+
+          mkdir staging
+          cp "${SOURCE_BINARY}" "staging/${OUTPUT_BINARY}"
+          cp -r ${FILES_TO_PACKAGE} staging/
+
+          if [[ "${OS_PLATFORM}" == "win32" ]]; then
+            echo "Modifying gemini-extension.json for Windows..."
+            jq '.mcpServers.osvScanner.command += ".exe"' gemini-extension.json > staging/gemini-extension.json
+            echo "Modification complete."
+          fi
+
+          echo "All assets staged."
+          ls -l staging
+
+          # Create archive
+          if [[ "${OS_PLATFORM}" == "win32" ]]; then
+            (cd staging && zip -r ../"${ARCHIVE_NAME}" *)
+          else
+            tar -czvf "${ARCHIVE_NAME}" -C staging .
+          fi
+          echo "Created archive: ${ARCHIVE_NAME}"
+          echo "archive_path=${ARCHIVE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Upload archive as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-archive-${{ matrix.platform.archive_name }}
+          path: ${{ steps.create_archive.outputs.archive_path }}
+
+  # This job gathers all archives and uploads them to the GitHub Release.
+  upload:
+    name: Upload all assets to release
+    runs-on: ubuntu-latest
+    needs: package
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all release archives
+        uses: actions/download-artifact@v4
+        with:
+          path: release-archives
+          pattern: release-archive-*
+          merge-multiple: true        
+
+      - name: List downloaded files
+        run: |
+          echo "--- Downloaded files ---"
+          ls -R release-archives
+          echo "------------------------"
+
+      - name: Upload all assets to GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.event.release.tag_name || inputs.tag_name }}
         run: |
           gh release upload \
-            ${{ github.event.release.tag_name || inputs.tag_name }} \
-            security-release.tar.gz
+            ${TAG_NAME} \
+            release-archives/*
