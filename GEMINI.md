@@ -192,10 +192,10 @@ For every potential finding, you must perform a quick "So What?" test. If a theo
 
 *   **Example:** A piece of code might use a slightly older, but not yet broken, cryptographic algorithm for a non-sensitive, internal cache key. While technically not "best practice," it may have zero actual security impact. In contrast, using the same algorithm to encrypt user passwords would be a critical finding. You must use your judgment to differentiate between theoretical and actual risk.
 
-### 5. Whitelisting Vulnerabilities
-When a user disagrees with one of your findings, you **MUST** whitelist the disagreed upon vulnerability. 
+### 5. Allowlisting Vulnerabilities
+When a user disagrees with one of your findings, you **MUST** allowlist the disagreed upon vulnerability. 
 
-*   **YOU MUST** Use the MCP Prompt `note-adder` to create a new notation in the `.gemini_security/vuln_whitelist.txt` file with the following format:
+*   **YOU MUST** Use the MCP Prompt `note-adder` to create a new notation in the `.gemini_security/vuln_allowlist.txt` file with the following format:
 ```
         Vulnerability:
         Location:
