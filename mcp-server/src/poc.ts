@@ -9,7 +9,6 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import ivm from 'isolated-vm';
 
 const execAsync = promisify(exec);
 
@@ -61,38 +60,37 @@ export async function runPoc(
     code,
   }: {
     code: string;
-    }
+  },
+  dependencies: { fs: typeof fs; path: typeof path; execAsync: typeof execAsync } = { fs, path, execAsync }
 ): Promise<CallToolResult> {
   try {
-    const isolate = new ivm.Isolate({ memoryLimit: 128 });
-    const context = await isolate.createContext();
-    const jail = context.global;
-    await jail.set('global', jail.derefInto());
+    const CWD = process.cwd();
+    const securityDir = dependencies.path.join(CWD, '.gemini_security');
 
-    const logs: string[] = [];
-    await jail.set('print', new ivm.Reference((...args: any[]) => {
-      logs.push(args.map(arg => String(arg)).join(' '));
-    }));
+    // Ensure .gemini_security directory exists
+    try {
+      await dependencies.fs.mkdir(securityDir, { recursive: true });
+    } catch (error) {
+      // Ignore error if directory already exists
+    }
 
-    await context.eval(`
-      global.console = {
-        log: function(...args) {
-          print.apply(undefined, args, { arguments: { copy: true } });
-        },
-        error: function(...args) {
-          print.apply(undefined, args, { arguments: { copy: true } });
-        }
-      };
-    `);
+    const pocFilePath = dependencies.path.join(securityDir, 'poc.js');
+    await dependencies.fs.writeFile(pocFilePath, code, 'utf-8');
 
-    const script = await isolate.compileScript(code);
-    await script.run(context);
+
+    try {
+      await dependencies.execAsync('npm install', { cwd: securityDir });
+    } catch (error) {
+      // Ignore errors from npm install, as it might fail if no package.json exists,
+      // but we still want to attempt running the PoC.
+    }
+    const { stdout, stderr } = await dependencies.execAsync(`node ${pocFilePath}`);
 
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify({ stdout: logs.join('\n'), stderr: '' }),
+          text: JSON.stringify({ stdout, stderr }),
         },
       ],
     };
