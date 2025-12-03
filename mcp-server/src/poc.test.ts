@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { describe, it, vi, expect } from 'vitest';
 import { validatePocParams, runPoc } from './poc.js';
 
