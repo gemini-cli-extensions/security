@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0](https://github.com/gemini-cli-extensions/security/compare/v0.3.0...v0.4.0) (2025-12-02)
+
+
+### Features
+
+* Add privacy specific taxonomy ([#84](https://github.com/gemini-cli-extensions/security/issues/84)) ([46b3eb0](https://github.com/gemini-cli-extensions/security/commit/46b3eb037d7e9f7c2f8f56c68ba91520c0207719))
+* add tooling for defining the audit scope ([1730bbb](https://github.com/gemini-cli-extensions/security/commit/1730bbb9c2437921198e495a31d9703fbfb07244))
+
+
+### Bug Fixes
+
+* change errro message to empty string in diff fail ([18ecd79](https://github.com/gemini-cli-extensions/security/commit/18ecd79bbd90b96765671fe2ea5c21b356143bf2))
+* move selective action prompting to top of gemini md ([7ecd59d](https://github.com/gemini-cli-extensions/security/commit/7ecd59da74e2010ec02659d83f0d4d2a9f1476f3))
+* package lock jsons ([7c393ca](https://github.com/gemini-cli-extensions/security/commit/7c393cad458ad23911ab79285f3613f0d6809830))
+* remove irrelevant changes to prompt from this PR ([102d64c](https://github.com/gemini-cli-extensions/security/commit/102d64cbfd1124d043a6463b3f5410ff39d0b8c4))
+* Update description of audit tool, small fixes ([959ae50](https://github.com/gemini-cli-extensions/security/commit/959ae500795fa42085f00417b847034c326c0863))
+
 ## [0.3.0](https://github.com/gemini-cli-extensions/security/compare/v0.2.0...v0.3.0) (2025-10-20)
 
 
