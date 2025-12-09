@@ -12,49 +12,6 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
-export async function validatePocParams(
-  {
-    vulnerabilityType,
-    sourceCode,
-  }: {
-    vulnerabilityType: string;
-    sourceCode: string;
-  }
-): Promise<CallToolResult> {
-  if (!vulnerabilityType || !vulnerabilityType.trim()) {
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({ error: 'Vulnerability type is required.' }),
-        },
-      ],
-      isError: true,
-    };
-  }
-
-  if (!sourceCode || !sourceCode.trim()) {
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({ error: 'Source code is required.' }),
-        },
-      ],
-      isError: true,
-    };
-  }
-
-  return {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify({ message: 'Parameters are valid.' }),
-      },
-    ],
-  };
-}
-
 export async function runPoc(
   {
     code,
@@ -79,7 +36,7 @@ export async function runPoc(
 
 
     try {
-      await dependencies.execAsync('npm install', { cwd: securityDir });
+      await dependencies.execAsync('npm install --registry=https://registry.npmjs.org/', { cwd: securityDir });
     } catch (error) {
       // Ignore errors from npm install, as it might fail if no package.json exists,
       // but we still want to attempt running the PoC.
