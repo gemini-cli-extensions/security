@@ -109,10 +109,10 @@ Your primary goal is to maintain strict consistency with the format of the note 
 );
 
 server.registerPrompt(
-  'poc',
+  'security:poc',
   {
     title: 'PoC Generator',
-    description: 'Generates a Proof-of-Concept (PoC) for a given vulnerability.',
+    description: '[Experimental] Generates a Proof-of-Concept (PoC) for a given vulnerability.',
     argsSchema: {
       vulnerabilityType: z.string().optional().describe('The type of vulnerability.'),
       sourceCodeLocation: z.string().optional().describe('The location of the source code of the vulnerable file.'),
