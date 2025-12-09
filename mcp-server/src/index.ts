@@ -56,9 +56,9 @@ server.tool(
   'run_poc',
   'Runs the generated PoC code.',
   {
-    code: z.string().describe('The PoC code to run.'),
+    filePath: z.string().describe('The absolute path to the PoC file to run.'),
   } as any,
-  (input: { code: string }) => runPoc(input)
+  (input: { filePath: string }) => runPoc(input)
 );
 
 server.registerPrompt(
