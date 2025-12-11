@@ -14,6 +14,8 @@ import path from 'path';
 import { getAuditScope } from './filesystem.js';
 import { findLineNumbers } from './security.js';
 
+import { runPoc } from './poc.js';
+
 const server = new McpServer({
   name: 'gemini-cli-security',
   version: '0.1.0',
@@ -29,8 +31,8 @@ server.tool(
     snippet: z
       .string()
       .describe('The code snippet to search for inside the file.'),
-  },
-  (input) => findLineNumbers(input, { fs, path })
+  } as any,
+  (input: { filePath: string; snippet: string }) => findLineNumbers(input, { fs, path })
 );
 
 server.tool(
@@ -50,6 +52,15 @@ server.tool(
   }
 );
 
+server.tool(
+  'run_poc',
+  'Runs the generated PoC code.',
+  {
+    filePath: z.string().describe('The absolute path to the PoC file to run.'),
+  } as any,
+  (input: { filePath: string }) => runPoc(input)
+);
+
 server.registerPrompt(
   'security:note-adder',
   {
@@ -58,14 +69,16 @@ server.registerPrompt(
     argsSchema: {
       notePath: z.string().describe('The path to the note file.'),
       content: z.string().describe('The content of the note entry to add.'),
-    },
+    } as any,
   },
-  ({ notePath, content }) => ({
+  (args: any) => {
+    const { notePath, content } = args;
+    return {
     messages: [
       {
-        role: 'user',
+        role: 'user' as const,
         content: {
-          type: 'text',
+          type: 'text' as const,
           text: `You are a helpful assistant that helps users maintain notes. Your task is to add a new entry to the notes file at '.gemini_security/${notePath}'.
 
 You MUST use the 'ReadFile' and 'WriteFile' tools.
@@ -91,7 +104,50 @@ Your primary goal is to maintain strict consistency with the format of the note 
         },
       },
     ],
-  }),
+    }
+  },
+);
+
+server.registerPrompt(
+  'security:poc',
+  {
+    title: 'PoC Generator',
+    description: '[Experimental] Generates a Proof-of-Concept (PoC) for a given vulnerability.',
+    argsSchema: {
+      vulnerabilityType: z.string().optional().describe('The type of vulnerability.'),
+      sourceCodeLocation: z.string().optional().describe('The location of the source code of the vulnerable file.'),
+    } as any,
+  },
+  (args: any) => {
+    const { vulnerabilityType, sourceCodeLocation } = args;
+    return {
+    messages: [
+      {
+        role: 'user' as const,
+        content: {
+          type: 'text' as const,
+          text: `You are a security expert. Your task is to generate a Proof-of-Concept (PoC) for a vulnerability. 
+                Use the given parameters to generate the PoC, if they don't exist, ask the user to provide them.
+
+                Input Parameters:
+                - Vulnerability Type: ${vulnerabilityType || 'Not provided'}
+                - Source Code Location: ${sourceCodeLocation || 'Not provided'}
+
+                **Workflow:**
+
+                1.  **Generate PoC:**
+                    *   Create a 'poc' directory in '.gemini_security' if it doesn't exist.
+                    *   Generate a Node.js script that demonstrates the vulnerability under the '.gemini_security/poc/' directory.
+                    *   The script should import the user's vulnerable file(s), and demonstrate the vulnerability in their code.
+
+                2.  **Run PoC:**
+                    *   Use the 'run_poc' tool with absolute file paths to execute the code.
+                    *   Analyze the output to verify if the vulnerability is reproducible.`,
+        },
+      },
+    ],
+    }
+  },
 );
 
 async function startServer() {

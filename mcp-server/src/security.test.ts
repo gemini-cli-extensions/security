@@ -36,7 +36,7 @@ describe('findLineNumbers', () => {
 
     const result = await findLineNumbers({ filePath: mockFilePath, snippet: 'const b = 2;' }, { fs: testFs as any, path });
 
-    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
+    const parsedResult = JSON.parse((result.content![0] as any).text as string) as ParsedResult;
     expect(parsedResult.startLine).toBe(3);
     expect(parsedResult.endLine).toBe(3);
   });
@@ -62,7 +62,7 @@ describe('findLineNumbers', () => {
       { fs: testFs as any, path }
     );
 
-    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
+    const parsedResult = JSON.parse((result.content![0] as any).text as string) as ParsedResult;
     expect(parsedResult.startLine).toBe(3);
     expect(parsedResult.endLine).toBe(4);
   });
@@ -80,14 +80,14 @@ describe('findLineNumbers', () => {
 
     const result = await findLineNumbers({ filePath: mockFilePath, snippet: 'const z = 30;' }, { fs: testFs as any, path });
 
-    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
+    const parsedResult = JSON.parse((result.content![0] as any).text as string) as ParsedResult;
     expect(parsedResult.error).toBe('Snippet was not found.');
   });
 
   it('should handle an empty snippet', async () => {
     const result = await findLineNumbers({ filePath: 'mock.ts', snippet: '' }, { fs: mockFs as any, path });
 
-    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
+    const parsedResult = JSON.parse((result.content![0] as any).text as string) as ParsedResult;
     expect(parsedResult.error).toBe('Snippet is empty.');
   });
 
@@ -102,7 +102,7 @@ describe('findLineNumbers', () => {
 
     const result = await findLineNumbers({ filePath: mockFilePath, snippet: 'any' }, { fs: testFs as any, path });
 
-    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
+    const parsedResult = JSON.parse((result.content![0] as any).text as string) as ParsedResult;
     expect(parsedResult.error).toBe('File not found');
   });
 
@@ -115,7 +115,7 @@ describe('findLineNumbers', () => {
 
     const result = await findLineNumbers({ filePath: mockFilePath, snippet: 'any' }, { fs: testFs as any, path });
 
-    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
+    const parsedResult = JSON.parse((result.content![0] as any).text as string) as ParsedResult;
     expect(parsedResult.error).toBe('File path is outside of the current working directory.');
   });
 
@@ -128,7 +128,7 @@ describe('findLineNumbers', () => {
 
     const result = await findLineNumbers({ filePath: mockFilePath, snippet: 'any' }, { fs: testFs as any, path });
 
-    const parsedResult = JSON.parse(result.content![0].text as string) as ParsedResult;
+    const parsedResult = JSON.parse((result.content![0] as any).text as string) as ParsedResult;
     expect(parsedResult.error).toBe('File path is outside of the current working directory.');
   });
 });
