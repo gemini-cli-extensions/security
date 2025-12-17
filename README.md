@@ -11,6 +11,7 @@ The Security extension is an open-source Gemini CLI extension, built to enhance 
 - **Open source**: The extension is open source and distributed under the Apache 2.0 license.
 - **Integrated with Gemini CLI**: As a Google-developed extension, it integrates seamlessly into the Gemini CLI environment, making security an accessible part of your workflow.
 - **Expandable scope**: The extension is designed with an extensible architecture, allowing for future expansion of detected security risks and more advanced analysis techniques.
+- **Dependency scans**: Identifies known vulnerabilities affecting your project's dependencies using [OSV-Scanner](https://github.com/google/osv-scanner).
 
 ## Installation
 
@@ -36,6 +37,25 @@ By default, the `/security:analyze` command determines the scope of the analysis
 ```
 
 ![Customize analysis command](./assets/customize_command.gif)
+
+### Scan for vulnerable dependencies
+
+Modern software is built on open-source dependencies, but this can introduce security risks if a dependency contains vulnerabilities.
+
+Regularly running a dependency scan is a critical step in securing your software supply chain and protecting your project from well-known attack vectors.
+
+The `/scan-deps` command automates this process by integrating [OSV-Scanner](https://github.com/google/osv-scanner), a tool that cross-references your project's dependencies with
+[OSV.dev](https://osv.dev/)
+
+To run a scan, use the following command:
+```bash
+/scan-deps
+```
+
+After running the command, you will receive a report listing:
+- **Which dependencies are vulnerable.**
+- **Details about the specific vulnerabilities**, including their severity and identifiers (like CVEs).
+- **Guidance on how to remediate the issues**, such as which version to upgrade to.
 
 ## GitHub Integration
 
