@@ -115,10 +115,11 @@ server.registerPrompt(
     description: '[Experimental] Generates a Proof-of-Concept (PoC) for a given vulnerability.',
     argsSchema: {
       problemStatement: z.string().optional().describe('A description of the security problem or vulnerability.'),
+      sourceCodeLocation: z.string().optional().describe('The location of the source code that contains the vulnerability.'),
     } as any,
   },
   (args: any) => {
-    const { problemStatement } = args;
+    const { problemStatement, sourceCodeLocation } = args;
     return {
       messages: [
         {
@@ -127,15 +128,9 @@ server.registerPrompt(
             type: 'text' as const,
             text: `You are a security expert. Your task is to generate a Proof-of-Concept (PoC) for a vulnerability.
 
-          Problem Statement: ${problemStatement || 'Not provided'}
-
-          Using the provided problem statement, identify the following parameters:
-          - Source Code Location
-
-          If the problem statement does not provide enough information to identify the parameters, **ASK THE USER** for the missing information.
-
-          If you have all the necessary information, proceed with the following workflow:
-
+          Problem Statement: ${problemStatement || 'No problem statement provided, if you need more information to generate a PoC, ask the user.'}
+          Source Code Location: ${sourceCodeLocation || 'No source code location provided, try to derive it from the Problem Statement. If you cannot derive it, ask the user for the source code location.'}
+      
           **Workflow:**
 
           1.  **Generate PoC:**
