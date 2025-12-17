@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.4.0](https://github.com/gemini-cli-extensions/security/compare/v0.3.0...v0.4.0) (2025-12-17)
+
+
+### Features
+
+* Add basic poc command functionality to the MCP server ([2f533fd](https://github.com/gemini-cli-extensions/security/commit/2f533fdb65368aa64219bd772d0228f73b544c36))
+* Add privacy specific taxonomy ([#84](https://github.com/gemini-cli-extensions/security/issues/84)) ([46b3eb0](https://github.com/gemini-cli-extensions/security/commit/46b3eb037d7e9f7c2f8f56c68ba91520c0207719))
+* add tooling for defining the audit scope ([1730bbb](https://github.com/gemini-cli-extensions/security/commit/1730bbb9c2437921198e495a31d9703fbfb07244))
+* Use problem statements in the PoC function to allow for more flexible usage ([a0449d3](https://github.com/gemini-cli-extensions/security/commit/a0449d3baddc9833bdca68af91eca27446c83c2c))
+
+
+### Bug Fixes
+
+* add experimental tag and securiy prefix to poc prompt ([d52c8ca](https://github.com/gemini-cli-extensions/security/commit/d52c8cac0a4bea20b15c3fc1f3f6b622c08dae0b))
+* add language that suggests to skip if note doesnt exist ([e0f60ea](https://github.com/gemini-cli-extensions/security/commit/e0f60ea96da86bf12f272c7c7b3f5c75b1bec113))
+* add license header to poc test file ([6bc9bf9](https://github.com/gemini-cli-extensions/security/commit/6bc9bf9a327a5957d870c75acc4e1f998338a89e))
+* Add source code location as parmater to our PoC command (it increases success rate and decreases token usage) ([07a1e07](https://github.com/gemini-cli-extensions/security/commit/07a1e07e215b592f261e6d58b6b98a9e8bf86c31))
+* change errro message to empty string in diff fail ([18ecd79](https://github.com/gemini-cli-extensions/security/commit/18ecd79bbd90b96765671fe2ea5c21b356143bf2))
+* finialzie merge into main ([bd6d4e5](https://github.com/gemini-cli-extensions/security/commit/bd6d4e52473aadcd1b6e14c136cfb3ef950b8e18))
+* folder location wording in gemini .md ([da3ef99](https://github.com/gemini-cli-extensions/security/commit/da3ef9906ad11efd20af574fe12967e36064dffa))
+* folder location wording in gemini .md ([32ad411](https://github.com/gemini-cli-extensions/security/commit/32ad411db1f7bb1a6fe3d0a756f982dafbdae6a0))
+* make prompt less error prone by enforcing directory ([0ea0b48](https://github.com/gemini-cli-extensions/security/commit/0ea0b48f9d95dd2a9af977928824dac7141a46e8))
+* merge into main ([8cbfd3c](https://github.com/gemini-cli-extensions/security/commit/8cbfd3c883cb9a8e3fb80df1a684326805de81f2))
+* move selective action prompting to top of gemini md ([7ecd59d](https://github.com/gemini-cli-extensions/security/commit/7ecd59da74e2010ec02659d83f0d4d2a9f1476f3))
+* move whitelist directory to .gemini_security ([bac4ab6](https://github.com/gemini-cli-extensions/security/commit/bac4ab6ffaa00d07adb60b8eae98ce8e7d51f43d))
+* package lock jsons ([7c393ca](https://github.com/gemini-cli-extensions/security/commit/7c393cad458ad23911ab79285f3613f0d6809830))
+* remove conflicting gemini md wording from unmerged file ([6b8fe2b](https://github.com/gemini-cli-extensions/security/commit/6b8fe2bf43172b75f308b920547abb8dd6feccb2))
+* remove irrelevant changes to prompt from this PR ([102d64c](https://github.com/gemini-cli-extensions/security/commit/102d64cbfd1124d043a6463b3f5410ff39d0b8c4))
+* remove mentions of unused security notes folder from gemini md ([1723ce8](https://github.com/gemini-cli-extensions/security/commit/1723ce8db545368adb39629f6c16d33780797770))
+* remove merge remnants ([1c87790](https://github.com/gemini-cli-extensions/security/commit/1c8779066dc8c43c01d5df4990efc0e6f4ab9b83))
+* remove redundant parameter validation, clean up /poc prompting ([682488d](https://github.com/gemini-cli-extensions/security/commit/682488d4b767c4aeddf6d690e6e04434bafbe99f))
+* Update description of audit tool, small fixes ([959ae50](https://github.com/gemini-cli-extensions/security/commit/959ae500795fa42085f00417b847034c326c0863))
+* update run_poc signature to take in a file path instead of source code to run. ([847ec4c](https://github.com/gemini-cli-extensions/security/commit/847ec4c2daf456e797924144b5ea276fb7bb6714))
+* use isolated-vm library to isolate generated code ([7e5ea18](https://github.com/gemini-cli-extensions/security/commit/7e5ea1888ac3cd1ec355f688f9ec3a248ed75ccb))
+
 ## [0.3.0](https://github.com/gemini-cli-extensions/security/compare/v0.2.0...v0.3.0) (2025-10-20)
 
 
