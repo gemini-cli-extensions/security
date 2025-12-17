@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.0](https://github.com/gemini-cli-extensions/security/compare/v0.3.0...v0.4.0) (2025-12-17)
+
+
+### Features
+
+* Add basic poc command functionality to the MCP server ([2f533fd](https://github.com/gemini-cli-extensions/security/commit/2f533fdb65368aa64219bd772d0228f73b544c36))
+* Add privacy specific taxonomy ([#84](https://github.com/gemini-cli-extensions/security/issues/84)) ([46b3eb0](https://github.com/gemini-cli-extensions/security/commit/46b3eb037d7e9f7c2f8f56c68ba91520c0207719))
+* add tooling for defining the audit scope ([1730bbb](https://github.com/gemini-cli-extensions/security/commit/1730bbb9c2437921198e495a31d9703fbfb07244))
+* Use problem statements in the PoC function to allow for more flexible usage ([a0449d3](https://github.com/gemini-cli-extensions/security/commit/a0449d3baddc9833bdca68af91eca27446c83c2c))
+* download/package OSV scanner and register as MCP server ([eccf9eb](https://github.com/gemini-cli-extensions/security/pull/105/commits/eccf9eb885294235a84eef9968a0ceb5c14ff512))
+
 ## [0.3.0](https://github.com/gemini-cli-extensions/security/compare/v0.2.0...v0.3.0) (2025-10-20)
 
 
