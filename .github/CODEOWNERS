@@ -1,5 +1,5 @@
 # By default, require reviews from the release approvers for all files.
-* @capachino @evanotero @heltonduarte @pedrour @QuanZhang-William @shrishabh 
+* @capachino @evanotero @heltonduarte @QuanZhang-William @QuinnDACollins @shrishabh
 
 # The following files don't need reviews from the release approvers.
 # These patterns override the rule above.
