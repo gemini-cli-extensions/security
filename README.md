@@ -44,10 +44,9 @@ Modern software is built on open-source dependencies, but this can introduce sec
 
 Regularly running a dependency scan is a critical step in securing your software supply chain and protecting your project from well-known attack vectors.
 
-The `/scan-deps` command automates this process by integrating [OSV-Scanner](https://github.com/google/osv-scanner), a tool that cross-references your project's dependencies with
-[OSV.dev](https://osv.dev/)
+The `/scan-deps` command automates this process by integrating [OSV-Scanner](https://github.com/google/osv-scanner), a tool that cross-references your project's dependencies with [OSV.dev](https://osv.dev/), a Google-maintained, open-source vulnerability database. OSV.dev provides precise vulnerability data by aggregating information from a wide range of open-source ecosystems, ensuring comprehensive and reliable security advisories.
 
-To run a scan, use the following command:
+To run a dependency scan, use the following command:
 ```bash
 /scan-deps
 ```
