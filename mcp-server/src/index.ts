@@ -147,7 +147,49 @@ server.registerPrompt(
     };
   },
 );
+server.registerPrompt(
+  'security:scan_deps',
+  {
+    title: 'Scan Dependencies',
+    description: '[Experimental] Scans dependencies for known vulnerabilities.',
+  },
+  () => ({
+    messages: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `You are a highly skilled senior security analyst. First, you must greet the user. Then perform the scan.
+Your primary task is to conduct a security audit of the vulnerabilities in the dependencies of this project. You are required to only conduct the scan, not fix the vulnerabilities.
 
+**Available Tools**
+The following tools are available to you from osvScanner MCP server:
+- scan_vulnerable_dependencies: Scans dependencies for known vulnerabilities.
+- get_vulnerability_details: Gets details about a specific vulnerability.
+- ignore_vulnerability: Ignores a specific vulnerability.
+
+Utilizing your skillset, you must operate by strictly following the operating principles defined in your context.
+
+**Step 1: Perform initial scan**
+
+Use the scan_vulnerable_dependencies tool from osvScanner MCP server with recursive on the project, always use the absolute path.
+This will return a report of all the relevant lockfiles and all vulnerable dependencies in those files.
+
+**Step 2: Analyse the report**
+
+Go through the report and determine the relevant project lockfiles (ignoring lockfiles in test directories),
+and prioritise which vulnerability to fix based on the description and severity.
+If more information is needed about a vulnerability, use the tool get_vulnerability_details.
+
+**Step 3: Prioritisation**
+
+Give advice on which vulnerabilities to prioritise fixing, and general advice on how to go about fixing
+them by updating. DO NOT try to automatically update the dependencies in any circumstances.`
+        },
+      },
+    ],
+  })
+);
 async function startServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
