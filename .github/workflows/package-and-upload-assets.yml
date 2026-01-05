@@ -76,7 +76,9 @@ jobs:
       - name: Get latest OSV scanner version
         id: osv_scanner_version
         run: |
-          LATEST_TAG=$(curl -sSLf "https://api.github.com/repos/google/osv-scanner/releases/latest" | jq -r .tag_name)
+          # LATEST_TAG=$(curl -sSLf "https://api.github.com/repos/google/osv-scanner/releases/latest" | jq -r .tag_name)
+          # Manually pin to v2.2.4 for now because of https://github.com/google/osv-scanner/issues/2421
+          LATEST_TAG="v2.2.4"
           echo "tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
       
       - name: Download OSV scanner binary
