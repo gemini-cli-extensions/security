@@ -15,6 +15,7 @@ import { getAuditScope } from './filesystem.js';
 import { findLineNumbers } from './security.js';
 
 import { runPoc } from './poc.js';
+import { AnalyzePrompt } from './prompts/analyze.js';
 
 const server = new McpServer({
   name: 'gemini-cli-security',
@@ -59,6 +60,25 @@ server.tool(
     filePath: z.string().describe('The absolute path to the PoC file to run.'),
   } as any,
   (input: { filePath: string }) => runPoc(input)
+);
+
+server.registerPrompt(
+  'security:mcp-analyze',
+  {
+    title: AnalyzePrompt.title,
+    description: AnalyzePrompt.description,
+  },
+  () => ({
+    messages: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: AnalyzePrompt.instruction,
+        },
+      },
+    ],
+  })
 );
 
 server.registerPrompt(
