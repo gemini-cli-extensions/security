@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.24.0",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "tree-sitter": "^0.21.0",
+    "web-tree-sitter": "^0.22.0"
   }
 }

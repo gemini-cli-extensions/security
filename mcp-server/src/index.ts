@@ -13,13 +13,81 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { getAuditScope } from './filesystem.js';
 import { findLineNumbers } from './security.js';
-
+import { GraphBuilder, GraphService } from './codemaps/index.js';
 import { runPoc } from './poc.js';
 
 const server = new McpServer({
   name: 'gemini-cli-security',
   version: '0.1.0',
 });
+
+const SUPPORTED_EXTS = ['.py', '.js', '.ts', 'go'];
+const DEFAULT_EXCLUDES = ['.git', 'node_modules', 'dist', 'build', 'venv', '__pycache__'];
+
+async function scan_dir(dir_path: string, excludes = DEFAULT_EXCLUDES, exts = SUPPORTED_EXTS) {
+  const files: string[] = [];
+  
+  async function scan(currentPath: string) {
+    const entries = await fs.readdir(currentPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(currentPath, entry.name);
+      if (excludes.includes(entry.name)) {
+        continue;
+      }
+      if (entry.isDirectory()) {
+        await scan(fullPath);
+      } else if (exts.some(ext => entry.name.endsWith(ext))) {
+        files.push(fullPath);
+      }
+    }
+  }
+
+  await scan(dir_path);
+  return files;
+}
+
+const graphService = new GraphService();
+const graphBuilder = new GraphBuilder(graphService);
+let graphBuilt = false;
+
+server.tool(
+  'get_enclosing_entity',
+  'Get the nearest enclosing node (function/class) details (name, type, range).',
+  {
+    filePath: z.string().describe('The path to the file.'),
+    line: z.number().describe('The line number.'),
+  } as any,
+  async (input: any) => {
+    const { filePath, line } = input as { filePath: string; line: number };
+    if (!graphBuilt) {
+      const files = await scan_dir(process.cwd());
+      for (const file of files) {
+        await graphBuilder.buildGraph(file);
+      }
+      graphBuilt = true;
+    }
+    const entity = graphService.findEnclosingEntity(filePath, line);
+    if (entity) {
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify(entity, null, 2),
+          },
+        ],
+      };
+    } else {
+        return {
+            content: [
+                {
+                    type: 'text' as const,
+                    text: 'No enclosing entity found.',
+                },
+            ],
+        };
+    }
+  }
+);
 
 server.tool(
   'find_line_numbers',
