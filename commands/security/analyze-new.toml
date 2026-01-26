@@ -94,10 +94,13 @@ You will now begin executing the plan. The following are your precise instructio
     *   If the above command fails, producing a fatal error: then proceed to step 1b.
 
 1a. **To define the audit scope in a git repository**
-    *   You **MUST** run the exact command: `git diff -U10 --merge-base origin/HEAD | grep -v '^-'`.
-    *   If this command fails and does not produce a changelist, use this exact command: `git diff -U10 | grep -v '^-'`.
-    *   This is your only method for determining the diff. Do not use any other commands for this purpose.
-    *   Once the command is executed and you have the diff, you will mark this task as complete.
+    *   To get the code changes, you **MUST** run `git diff --unified=0 --merge-base origin/HEAD | grep '^\+'`.
+    *   If this command fails, use `git diff --unified=0 | grep '^\+'`. This will give you only the added lines.
+    *   For each added line, you need to get its context. To do this, you **MUST** parse the output to find the file path and the line number of the added line.
+    *   Then, for each added line, you **MUST** use the `get_enclosing_entity` function with the file path and line number. This will give you the full source code of the function or class that contains the new code.
+    *   The combination of the added lines and their enclosing entity is the scope of your audit for that change.
+    *   This is your only method for determining the diff and its context. Do not use any other commands for this purpose.
+    *   Once you have the enclosing entity for all added code blocks, you will mark this task as complete.
 
 1b. **To define the audit scope in a non-git folder**
     *   Let the user know that you were unable to generate an automatic changelist with git, so you **MUST** prompt the user for files to security scan.
