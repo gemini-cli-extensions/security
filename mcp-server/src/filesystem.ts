@@ -27,13 +27,27 @@ export const isGitHubRepository = (): boolean => {
 };
 
 /**
- * Gets a changelist of the repository 
+ * Gets a changelist of the repository between two commits.
+ * If no commits are provided, it gets the changelist of the working directory.
+ * @param base The base commit branch or hash.
+ * @param head The head commit branch or hash.
+ * @returns The changelist as a string.
  */
-export function getAuditScope(): string {
-    let command = isGitHubRepository() ? 'git diff --merge-base origin/HEAD' : 'git diff';
+export function getAuditScope(base?: string, head?: string): string {
+    // Default to working directory diff if no commits are provided
+    const args: string[] = ["diff"];
+
+    // Add commit range if both base and head are provided
+    if (base !== undefined && head !== undefined) {
+        args.push(base, head);
+    }
+    // Otherwise, if this is a GitHub repository, use origin/HEAD as the base
+    else if (isGitHubRepository()) {
+        args.push('--merge-base', 'origin/HEAD');
+    }
     try {
         const diff = (
-        spawnSync('git', command.split(' ').slice(1), {
+        spawnSync('git', args, {
             encoding: 'utf-8',
         }).stdout || ''
         ).trim();
