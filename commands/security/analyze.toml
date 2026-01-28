@@ -109,7 +109,7 @@ You will now begin executing the plan. The following are your precise instructio
 
 1.  **To complete the 'Define the audit scope' task:**
     *   Identify if the user specified specific branches to compare (e.g. "compare main and dev").
-    *   You **MUST** use the `get_audit_scope` tool. Pass the branch names as arguments if the user provided them; otherwise call it with no arguments to scan the current changes.
+    *   You **MUST** use the `get_audit_scope` tool and nothing else to get a list of changed files to perform a security scan on. Pass the branch names as arguments if the user provided them; otherwise call it with no arguments to scan the current changes.
     *   After using the tool, provide the user a list of changed files. If the list of files is empty, ask the user to provide files to be scanned.
 
 2.  **Immediately after defining the scope, you must refine your plan:**

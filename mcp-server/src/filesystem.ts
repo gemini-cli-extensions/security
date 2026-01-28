@@ -28,6 +28,7 @@ export const isGitHubRepository = (): boolean => {
 
 /**
  * Gets a changelist of the repository between two commits.
+ * Can compare between two commits, or get the diff of the working directory.
  * If no commits are provided, it gets the changelist of the working directory.
  * @param base The base commit branch or hash.
  * @param head The head commit branch or hash.
