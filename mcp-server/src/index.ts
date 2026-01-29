@@ -41,8 +41,8 @@ server.tool(
   {
     base: z.string().optional().describe('The base branch or commit hash (e.g., "main").'),
     head: z.string().optional().describe('The head branch or commit hash (e.g., "feature-branch").'),
-  },
-  (args: { base?: string; head?: string }) => {
+  } as any,
+  ((args: { base?: string; head?: string }) => {
     const diff = getAuditScope(args.base, args.head);
     return {
       content: [
@@ -52,7 +52,7 @@ server.tool(
         },
       ],
     };
-  }
+  }) as any
 );
 
 server.tool(
