@@ -12,7 +12,6 @@ import * as fs from 'fs';
 describe('filesystem', () => {
   beforeAll(() => {
     execSync('git init');
-    // REMOVED: git remote add origin ... (Moved to the specific test case below)
     fs.writeFileSync('test.txt', 'hello');
     execSync('git add .');
     execSync('git commit -m "initial commit"');
@@ -37,7 +36,7 @@ describe('filesystem', () => {
 
   it('should return a diff of the current changes when no branches or commits are specified', () => {
     fs.writeFileSync('test.txt', 'hello world');
-    // Since we removed the remote, this now defaults to 'git diff', which works locally
+    // Defaults to 'git diff' with remote removed
     const diff = getAuditScope();
     expect(diff).toContain('hello world');
   });
