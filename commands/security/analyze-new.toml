@@ -57,7 +57,7 @@ For EVERY task, you MUST follow this procedure.
 5.  **Phase 4: Final Reporting & Cleanup**
     *   **Action:** Output the final, reviewed report as your response to the user.
     *   **Action:** If, after the review, no vulnerabilities remain, your final output **MUST** be the standard "clean report" message specified by the task prompt.
-    *   **Action:** Remove the temporary files (`SECURITY_ANALYSIS_TODO.md` and `DRAFT_SECURITY_REPORT.md`) from the `.gemini_security/` directory unless instructed otherwise. Only remove these files and do not remove any other user files under any circumstances.
+    *   **Action:** Remove the temporary files (`SECURITY_ANALYSIS_TODO.md` and `DRAFT_SECURITY_REPORT.md`) from the `.gemini_security_new/` directory unless instructed otherwise. Only remove these files and do not remove any other user files under any circumstances.
 
 ### Example of the Workflow in `SECURITY_ANALYSIS_TODO.md`
 
@@ -94,13 +94,18 @@ You will now begin executing the plan. The following are your precise instructio
     *   If the above command fails, producing a fatal error: then proceed to step 1b.
 
 1a. **To define the audit scope in a git repository**
-    *   To get the code changes, you **MUST** run `git diff --unified=0 --merge-base origin/HEAD | grep '^\+'`.
-    *   If this command fails, use `git diff --unified=0 | grep '^\+'`. This will give you only the added lines.
-    *   For each added line, you need to get its context. To do this, you **MUST** parse the output to find the file path and the line number of the added line.
-    *   Then, for each added line, you **MUST** use the `get_enclosing_entity` function with the file path and line number. This will give you the full source code of the function or class that contains the new code.
-    *   The combination of the added lines and their enclosing entity is the scope of your audit for that change.
+    *   To get the added code, you **MUST** run `git diff --unified=0 --merge-base origin/HEAD | grep '^\\+'`. This command provides a simple list of all added lines.
+    *   From this list, parse the file path and the **text content** for each added line.
+    *   **Optimized Context Retrieval:** To efficiently get the context for these changes, you must avoid redundant tool calls. You will maintain a record of the functions you have already retrieved for each file.
+        1.  Iterate through your list of changed lines (`file_path`, `line_content`). For each one, first use the `find_line_numbers` tool to get its precise `line_number`.
+        2.  Before calling the next tool, check if this `line_number` is already covered by a function you have previously retrieved and recorded for that file.
+        3.  If it is **not** covered, you **MUST** then call `get_enclosing_entity` and record the retrieved function and its line range.
+        4.  If it **is** covered, you **MUST NOT** call `get_enclosing_entity` again.
+    *   This procedure ensures you only call the tools for the minimum number of lines necessary to identify each unique, changed function.
+    *   The collection of unique enclosing entities you retrieve is the scope of your audit.
+    *   **Fallback Mechanism:** If the primary workflow fails for any change block (e.g., `find_line_numbers` cannot locate the snippet, or `get_enclosing_entity` returns an error), you **MUST** fall back to a context-based diff for that specific block. Run `git diff -U10 --merge-base origin/HEAD | grep -v '^-'` and use the resulting hunk (the changed lines plus 10 lines of context before and after) as the scope for your analysis of that specific change. 
     *   This is your only method for determining the diff and its context. Do not use any other commands for this purpose.
-    *   Once you have the enclosing entity for all added code blocks, you will mark this task as complete.
+    *   Once you have the enclosing entities for all added code blocks, you will mark this task as complete.
 
 1b. **To define the audit scope in a non-git folder**
     *   Let the user know that you were unable to generate an automatic changelist with git, so you **MUST** prompt the user for files to security scan.

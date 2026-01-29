@@ -11,6 +11,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { promises as fs } from 'fs';
 import path from 'path';
+import os from 'os';
 import { getAuditScope } from './filesystem.js';
 import { findLineNumbers } from './security.js';
 import { GraphBuilder, GraphService } from './codemaps/index.js';
@@ -54,21 +55,52 @@ server.tool(
   'get_enclosing_entity',
   'Get the nearest enclosing node (function/class) details (name, type, range).',
   {
-    filePath: z.string().describe('The path to the file.'),
+    file_path: z.string().describe('The path to the file.'),
     line: z.number().describe('The line number.'),
   } as any,
   async (input: any) => {
-    const { filePath, line } = input as { filePath: string; line: number };
-    if (!graphBuilt) {
-      const files = await scan_dir(process.cwd());
-      for (const file of files) {
-        await graphBuilder.buildGraph(file);
-      }
-      graphBuilt = true;
-    }
-    const entity = graphService.findEnclosingEntity(filePath, line);
-    if (entity) {
+    const logFilePath = path.join(os.homedir(), 'Desktop', 'satvikkk-Github', 'security-gCLI', 'debug.log');
+    await fs.appendFile(logFilePath, `Received input: ${JSON.stringify(input, null, 2)}\n`);
+
+    // The first call can be empty, so we guard against it.
+    if (!input.file_path) {
       return {
+        content: [{ type: 'text', text: 'Invalid argument: file_path is missing.' }],
+      };
+    }
+
+    const { file_path, line } = input as { file_path: string; line: number };
+
+    // Sanitize and resolve the file path to be absolute
+    let sanitizedFilePath = file_path.trim();
+    if (sanitizedFilePath.startsWith('"') && sanitizedFilePath.endsWith('"')) {
+      sanitizedFilePath = sanitizedFilePath.substring(1, sanitizedFilePath.length - 1);
+    }
+    if (sanitizedFilePath.startsWith('a/')) {
+      sanitizedFilePath = sanitizedFilePath.substring(2);
+    } else if (sanitizedFilePath.startsWith('b/')) {
+      sanitizedFilePath = sanitizedFilePath.substring(2);
+    }
+
+    const absoluteFilePath = path.resolve(process.cwd(), sanitizedFilePath);
+    await fs.appendFile(logFilePath, `Absolute file path: ${absoluteFilePath}\n`);
+
+    // Always rebuild the graph to ensure we are using the correct project context.
+    const files = await scan_dir(process.cwd());
+    await fs.appendFile(logFilePath, `Scanning files for graph build: ${JSON.stringify(files, null, 2)}\n`);
+    for (const file of files) {
+      try {
+        await graphBuilder.buildGraph(file);
+      } catch (e: any) {
+        await fs.appendFile(logFilePath, `Error building graph for file ${file}: ${e.message}\n`);
+      }
+    }
+
+    const entity = graphService.findEnclosingEntity(absoluteFilePath, line);
+    await fs.appendFile(logFilePath, `Found entity: ${JSON.stringify(entity, null, 2)}\n`);
+
+    if (entity) {
+      const response = {
         content: [
           {
             type: 'text' as const,
@@ -76,15 +108,19 @@ server.tool(
           },
         ],
       };
+      await fs.appendFile(logFilePath, `Returning response: ${JSON.stringify(response, null, 2)}\n`);
+      return response as any;
     } else {
-        return {
-            content: [
-                {
-                    type: 'text' as const,
-                    text: 'No enclosing entity found.',
-                },
-            ],
-        };
+      const response = {
+        content: [
+          {
+            type: 'text' as const,
+            text: 'No enclosing entity found.',
+          },
+        ],
+      };
+      await fs.appendFile(logFilePath, `Returning response: ${JSON.stringify(response, null, 2)}\n`);
+      return response as any;
     }
   }
 );
@@ -112,11 +148,11 @@ server.tool(
     return {
       content: [
         {
-          type: 'text',
+          type: "text",
           text: diff,
         },
       ],
-    };
+    } as any;
   }
 );
 

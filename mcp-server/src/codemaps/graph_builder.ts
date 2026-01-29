@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Parser from 'web-tree-sitter';
+import Parser from 'tree-sitter';
 import { GraphService } from './graph_service.js';
 import { GraphNode } from './models.js';
 import { PythonParser } from './parsers/python_parser.js';
@@ -13,42 +13,42 @@ import { GoParser } from './parsers/go_parser.js';
 import { TypeScriptParser } from './parsers/typescript_parser.js';
 import { LanguageParser } from './parsers/base_parser.js';
 import { promises as fs } from 'fs';
+import Python from 'tree-sitter-python';
+import JavaScript from 'tree-sitter-javascript';
+import Go from 'tree-sitter-go';
+import TypeScript from 'tree-sitter-typescript';
 
 export class GraphBuilder {
   private parser!: Parser;
   private languageParsers: { [key: string]: LanguageParser };
-  private languageLibs: { [key: string]: string };
+  private languages: { [key: string]: object };
+    constructor(private graphService: GraphService) {
+      this.languageParsers = {
+        python: new PythonParser(graphService),
+        javascript: new JavaScriptParser(graphService),
+        go: new GoParser(graphService),
+        typescript: new TypeScriptParser(graphService),
+      };
+      this.languages = {
+          python: Python,
+          javascript: JavaScript,
+          go: Go,
+          typescript: TypeScript,
+      };
+    }
 
-  constructor(private graphService: GraphService) {
-    this.languageParsers = {
-      python: new PythonParser(graphService),
-      javascript: new JavaScriptParser(graphService),
-      go: new GoParser(graphService),
-      typescript: new TypeScriptParser(graphService),
-    };
-    this.languageLibs = {
-        python: 'tree-sitter-python.wasm',
-        javascript: 'tree-sitter-javascript.wasm',
-        go: 'tree-sitter-go.wasm',
-        typescript: 'tree-sitter-typescript.wasm',
-    };
-  }
-
-  public async buildGraph(filePath: string) {
-    const language = this._getLanguageFromFileExtension(filePath);
-    const languageLibPath = this.languageLibs[language];
-    if (!languageLibPath) {
+    public async buildGraph(filePath: string) {
+      const language = this._getLanguageFromFileExtension(filePath);
+      const languageMapping = this.languages[language];
+    if (!languageMapping) {
         throw new Error(`Unsupported language: ${language}`);
     }
-    
-    await Parser.init();
-    const Lang = await Parser.Language.load(languageLibPath);
+
     this.parser = new Parser();
-    this.parser.setLanguage(Lang);
+    this.parser.setLanguage(languageMapping);
 
     const fileContent = await fs.readFile(filePath, 'utf8');
     const tree = this.parser.parse(fileContent);
-    
     const fileNode: GraphNode = {
         id: filePath,
         type: 'file',
@@ -59,10 +59,8 @@ export class GraphBuilder {
         codeSnippet: '',
     };
     this.graphService.addNode(fileNode);
-
     const languageParser = this.languageParsers[language];
     this._traverseTree(tree.rootNode, languageParser, filePath, filePath);
-    
     return this.graphService.graph;
   }
 
