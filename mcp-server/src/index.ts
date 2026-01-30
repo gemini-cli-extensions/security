@@ -37,15 +37,21 @@ server.tool(
 
 server.tool(
   'get_audit_scope',
-  'Checks if the current directory is a GitHub repository.',
-  {},
-  () => {
-    const diff = getAuditScope();
+  'Gets the files to be audited. Can return a diff of changes or a list of all files.',
+  {
+    fullScan: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe('Whether to return all files in the repository for a full scan.'),
+  } as any,
+  (input: any) => {
+    const scope = getAuditScope(input.fullScan);
     return {
       content: [
         {
-          type: 'text',
-          text: diff,
+          type: 'text' as const,
+          text: scope,
         },
       ],
     };

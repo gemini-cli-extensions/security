@@ -29,16 +29,21 @@ export const isGitHubRepository = (): boolean => {
 /**
  * Gets a changelist of the repository 
  */
-export function getAuditScope(): string {
-    let command = isGitHubRepository() ? 'git diff --merge-base origin/HEAD' : 'git diff';
+export function getAuditScope(full: boolean = false): string {
+    let command = '';
+    if (full) {
+        command = 'git ls-files';
+    } else {
+        command = isGitHubRepository() ? 'git diff --merge-base origin/HEAD' : 'git diff';
+    }
     try {
-        const diff = (
+        const result = (
         spawnSync('git', command.split(' ').slice(1), {
             encoding: 'utf-8',
         }).stdout || ''
         ).trim();
 
-        return diff;
+        return result;
     } catch (_error) {
         return "";
     }
