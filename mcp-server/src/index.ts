@@ -59,8 +59,6 @@ server.tool(
     line: z.number().describe('The line number.'),
   } as any,
   async (input: any) => {
-    const logFilePath = path.join(os.homedir(), 'Desktop', 'satvikkk-Github', 'security-gCLI', 'debug.log');
-    await fs.appendFile(logFilePath, `Received input: ${JSON.stringify(input, null, 2)}\n`);
 
     // The first call can be empty, so we guard against it.
     if (!input.file_path) {
@@ -83,21 +81,17 @@ server.tool(
     }
 
     const absoluteFilePath = path.resolve(process.cwd(), sanitizedFilePath);
-    await fs.appendFile(logFilePath, `Absolute file path: ${absoluteFilePath}\n`);
 
     // Always rebuild the graph to ensure we are using the correct project context.
     const files = await scan_dir(process.cwd());
-    await fs.appendFile(logFilePath, `Scanning files for graph build: ${JSON.stringify(files, null, 2)}\n`);
     for (const file of files) {
       try {
         await graphBuilder.buildGraph(file);
       } catch (e: any) {
-        await fs.appendFile(logFilePath, `Error building graph for file ${file}: ${e.message}\n`);
       }
     }
 
     const entity = graphService.findEnclosingEntity(absoluteFilePath, line);
-    await fs.appendFile(logFilePath, `Found entity: ${JSON.stringify(entity, null, 2)}\n`);
 
     if (entity) {
       const response = {
@@ -108,7 +102,6 @@ server.tool(
           },
         ],
       };
-      await fs.appendFile(logFilePath, `Returning response: ${JSON.stringify(response, null, 2)}\n`);
       return response as any;
     } else {
       const response = {
@@ -119,7 +112,6 @@ server.tool(
           },
         ],
       };
-      await fs.appendFile(logFilePath, `Returning response: ${JSON.stringify(response, null, 2)}\n`);
       return response as any;
     }
   }
