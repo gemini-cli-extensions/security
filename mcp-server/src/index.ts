@@ -37,10 +37,13 @@ server.tool(
 
 server.tool(
   'get_audit_scope',
-  'Checks if the current directory is a GitHub repository.',
-  {},
-  () => {
-    const diff = getAuditScope();
+  'Gets the git diff of the current changes. Can optionally compare two specific branches.',
+  {
+    base: z.string().optional().describe('The base branch or commit hash (e.g., "main").'),
+    head: z.string().optional().describe('The head branch or commit hash (e.g., "feature-branch").'),
+  } as any,
+  ((args: { base?: string; head?: string }) => {
+    const diff = getAuditScope(args.base, args.head);
     return {
       content: [
         {
@@ -49,7 +52,7 @@ server.tool(
         },
       ],
     };
-  }
+  }) as any
 );
 
 server.tool(
