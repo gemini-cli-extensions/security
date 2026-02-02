@@ -32,11 +32,17 @@ export const isGitHubRepository = (): boolean => {
 export function getAuditScope(): string {
     let command = isGitHubRepository() ? 'git diff --merge-base origin/HEAD' : 'git diff';
     try {
-        const diff = (
+        const diffOutput = (
         spawnSync('git', command.split(' ').slice(1), {
             encoding: 'utf-8',
         }).stdout || ''
-        ).trim();
+        );
+
+        const diff = diffOutput
+            .split('\n')
+            .filter(line => line.startsWith('+') && !line.startsWith('+++'))
+            .join('\n')
+            .trim();
 
         return diff;
     } catch (_error) {

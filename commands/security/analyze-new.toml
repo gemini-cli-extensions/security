@@ -14,18 +14,18 @@ The core principle is to trace untrusted data from its entry point (**Source**) 
 This workflow focuses on analyzing the diff of a pull request to identify potential security risks efficiently.
 
 #### Step 1: Retrieve PR Diff
-Instead of just getting a list of changed files, the workflow will retrieve the full diff for the pull request. The diff shows the specific lines that were added, modified, or removed.
+Instead of just getting a list of changed files, you will retrieve the full diff for the pull request. The diff shows the specific lines that were added, modified, or removed.
 
 #### Step 2: Analyze Diff for Taint Sources
-The agent will analyze only the diff content, which is significantly smaller than the full content of all changed files.
-It will focus specifically on newly added or modified lines (lines prefixed with +) to identify patterns that introduce a potential "source" of untrusted input (e.g., handling of req.query, req.body, file uploads, or other external data).
+You will analyze only the diff content, which is significantly smaller than the full content of all changed files.
+You will focus specifically on newly added or modified lines (lines prefixed with +) to identify patterns that introduce a potential "source" of untrusted input (e.g., handling of req.query, req.body, file uploads, or other external data).
 
 #### Step 3: Build a Targeted Investigation Plan
-A file will be added to the SECURITY_ANALYSIS_TODO.md for a full, deep-dive investigation only if its diff contains a potential taint source.
-Files with benign changes (e.g., comment updates, dependency bumps in lockfiles, documentation changes) will be ignored entirely. Their content will never be read or processed by the agent.
+You will add a file to the SECURITY_ANALYSIS_TODO.md for a full, deep-dive investigation only if its diff contains a potential taint source.
+You will ignore files with benign changes (e.g., comment updates, dependency bumps in lockfiles, documentation changes) entirely. You will never read or process their content.
 
 #### Step 4: Perform Deep-Dive Investigation
-The agent proceeds with its deep-dive analysis as before, but only on the much smaller, pre-qualified list of files that have been identified as containing legitimate security risks.
+You will proceed with your deep-dive analysis as before, but only on the much smaller, pre-qualified list of files that have been identified as containing legitimate security risks.
 This diff-first approach ensures that the most expensive part of the process—reading and analyzing entire files—is reserved for the few files that actually require it.
 
 For EVERY task, you MUST follow this procedure.
@@ -65,13 +65,13 @@ For EVERY task, you MUST follow this procedure.
     ```markdown
     - [ ] Define the audit scope.
     ```
-2.  **After Scope Definition (Diff Analysis):** The agent gets the diff and finds `+ const userId = req.query.id;` in `userController.js`. It rewrites `SECURITY_ANALYSIS_TODO.md`:
+2.  **After Scope Definition (Diff Analysis):** You will get the diff and find `+ const userId = req.query.id;` in `userController.js`. You will then rewrite `SECURITY_ANALYSIS_TODO.md`:
     ```markdown
     - [x] Define the audit scope.
     - [ ] Analyze diff for taint sources and create investigation plan.
       - [ ] Investigate data flow from `userId` in `userController.js`.
     ```
-3.  **Investigation Pass Begins:** The model now executes the sub-task. It traces `userId` and finds it is used in `db.run("SELECT * FROM users WHERE id = " + userId);`. It confirms this is an SQL Injection vulnerability, adds the finding to `DRAFT_SECURITY_REPORT.md`, and marks the task as complete.
+3.  **Investigation Pass Begins:** You will now execute the sub-task. You will trace `userId` and find it is used in `db.run("SELECT * FROM users WHERE id = " + userId);`. You will confirm this is an SQL Injection vulnerability, add the finding to `DRAFT_SECURITY_REPORT.md`, and mark the task as complete.
 
 ## Analysis Instructions
 
@@ -89,13 +89,12 @@ Your first action is to create a `SECURITY_ANALYSIS_TODO.md` file with the follo
 You will now begin executing the plan. The following are your precise instructions to start with.
 
 1.  **To complete the 'Define the audit scope' task:**
-    *   You **MUST** run the exact command: `git rev-parse --is-inside-work-tree`.
-    *   If the above command succeeds, returning true: then proceed to step 1a.
-    *   If the above command fails, producing a fatal error: then proceed to step 1b.
+    *   You **MUST** use the `get_audit_scope` tool to get the code changes for your review.
+    *   If the tool returns a diff, you will proceed to step 1a.
+    *   If the tool does not return a diff (e.g., in a non-git directory or if there are no changes), you will proceed to step 1b.
 
-1a. **To define the audit scope in a git repository**
-    *   To get the added code, you **MUST** run `git diff --unified=0 --merge-base origin/HEAD | grep '^\\+'`. This command provides a simple list of all added lines.
-    *   From this list, parse the file path and the **text content** for each added line.
+1a. **To analyze a diff:**
+    *   You will parse the file path and the **text content** for each added line from the diff.
     *   **Optimized Context Retrieval:** To efficiently get the context for these changes, you must avoid redundant tool calls. You will maintain a record of the functions you have already retrieved for each file.
         1.  Iterate through your list of changed lines (`file_path`, `line_content`). For each one, first use the `find_line_numbers` tool to get its precise `line_number`.
         2.  Before calling the next tool, check if this `line_number` is already covered by a function you have previously retrieved and recorded for that file.
@@ -103,13 +102,13 @@ You will now begin executing the plan. The following are your precise instructio
         4.  If it **is** covered, you **MUST NOT** call `get_enclosing_entity` again.
     *   This procedure ensures you only call the tools for the minimum number of lines necessary to identify each unique, changed function.
     *   The collection of unique enclosing entities you retrieve is the scope of your audit.
-    *   **Fallback Mechanism:** If the primary workflow fails for any change block (e.g., `find_line_numbers` cannot locate the snippet, or `get_enclosing_entity` returns an error), you **MUST** fall back to a context-based diff for that specific block. Run `git diff -U10 --merge-base origin/HEAD | grep -v '^-'` and use the resulting hunk (the changed lines plus 10 lines of context before and after) as the scope for your analysis of that specific change. 
+    *   **Fallback Mechanism:** If the primary workflow fails for any change block (e.g., `find_line_numbers` cannot locate the snippet, or `get_enclosing_entity` returns an error), you **MUST** fall back to using the raw diff hunk for that specific block as the scope for your analysis.
     *   This is your only method for determining the diff and its context. Do not use any other commands for this purpose.
     *   Once you have the enclosing entities for all added code blocks, you will mark this task as complete.
 
-1b. **To define the audit scope in a non-git folder**
-    *   Let the user know that you were unable to generate an automatic changelist with git, so you **MUST** prompt the user for files to security scan.
-    *   Match the users response to files in the workspace and build a list of files to analyze.
+1b. **To analyze a user-provided list of files:**
+    *   You **MUST** prompt the user for files to security scan.
+    *   You will then match the user's response to files in the workspace and build a list of files to analyze. The full content of these files is your audit scope.
     *   This is your only method for determining the files to analyze. Do not use any other commands for this purpose.
     *   Once you have a list of files to analyze you will mark this task as complete.
 
