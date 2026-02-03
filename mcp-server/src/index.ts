@@ -82,13 +82,22 @@ server.tool(
 
     const absoluteFilePath = path.resolve(process.cwd(), sanitizedFilePath);
 
-    // Always rebuild the graph to ensure we are using the correct project context.
-    const files = await scan_dir(process.cwd());
-    for (const file of files) {
-      try {
-        await graphBuilder.buildGraph(file);
-      } catch (e: any) {
+    const GEMINI_SECURITY_DIR = path.join(process.cwd(), '.gemini_security_new');
+
+    if (!graphBuilt) {
+      const loaded = await graphService.loadGraph(GEMINI_SECURITY_DIR);
+      if (!loaded) {
+        const files = await scan_dir(process.cwd());
+        for (const file of files) {
+          try {
+            await graphBuilder.buildGraph(file);
+          } catch (e: any) {
+            // Ignore errors for unsupported file types
+          }
+        }
+        await graphService.saveGraph(GEMINI_SECURITY_DIR);
       }
+      graphBuilt = true;
     }
 
     const entity = graphService.findEnclosingEntity(absoluteFilePath, line);

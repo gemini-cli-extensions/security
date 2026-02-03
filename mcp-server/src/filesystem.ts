@@ -30,21 +30,30 @@ export const isGitHubRepository = (): boolean => {
  * Gets a changelist of the repository 
  */
 export function getAuditScope(): string {
-    let command = isGitHubRepository() ? 'git diff --merge-base origin/HEAD' : 'git diff';
+    // --diff-filter=AM: Only Added or Modified files
+    // --unified=0: Removes context lines, showing only changed lines
+    const command = isGitHubRepository()
+        ? 'git diff --diff-filter=AM --unified=0 origin/HEAD'
+        : 'git diff --diff-filter=AM --unified=0';
+    
     try {
-        const diffOutput = (
-        spawnSync('git', command.split(' ').slice(1), {
+        const result = spawnSync('git', command.split(' ').slice(1), {
             encoding: 'utf-8',
-        }).stdout || ''
-        );
+        }).stdout || '';
 
-        const diff = diffOutput
-            .split('\n')
-            .filter(line => line.startsWith('+') && !line.startsWith('+++'))
-            .join('\n')
-            .trim();
+        let currentFile = '';
+        const diffLines = [];
 
-        return diff;
+        for (const line of result.split('\n')) {
+            if (line.startsWith('+++ b/')) {
+                currentFile = line.substring(6);
+                diffLines.push(`File: ${currentFile}`);
+            } else if (line.startsWith('+') && !line.startsWith('+++') && currentFile) {
+                diffLines.push(line);
+            }
+        }
+
+        return diffLines.join('\n').trim();
     } catch (_error) {
         return "";
     }

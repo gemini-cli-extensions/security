@@ -5,6 +5,8 @@
  */
 
 import { GraphNode, GraphEdge } from './models.js';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export class GraphService {
   public graph: {
@@ -119,5 +121,40 @@ export class GraphService {
 
   public addPendingCall(filePath: string, sourceId: string, calleeName: string) {
     this._pendingCalls.push([filePath, sourceId, calleeName]);
+  }
+
+  public async saveGraph(outputDir: string) {
+    const filePath = path.join(outputDir, 'codemap.json');
+    const graphJson = {
+      nodes: Array.from(this.graph.nodes.values()),
+      edges: Array.from(this.graph.edges.values()).flat(),
+    };
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.writeFile(filePath, JSON.stringify(graphJson, null, 2));
+  }
+  public async loadGraph(outputDir: string): Promise<boolean> {
+    const filePath = path.join(outputDir, 'codemap.json');
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+      const graphJson = JSON.parse(data);
+
+      this.graph.nodes.clear();
+      this.graph.edges.clear();
+      this.graph.inEdges.clear();
+      this._byName.clear();
+      this._byFileAndName.clear();
+      this._pendingCalls = [];
+
+      for (const node of graphJson.nodes) {
+        this.addNode(node);
+      }
+
+      for (const edge of graphJson.edges) {
+        this.addEdge(edge);
+      }
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
