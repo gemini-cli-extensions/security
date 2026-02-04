@@ -23,7 +23,7 @@ export class TypeScriptParser implements LanguageParser {
         const endLine = node.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
         this.graphService.addNode({
           id: nodeId,
           type: 'function',
@@ -46,7 +46,7 @@ export class TypeScriptParser implements LanguageParser {
         const endLine = node.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
 
         this.graphService.addNode({
           id: nodeId,
@@ -117,7 +117,7 @@ export class TypeScriptParser implements LanguageParser {
         const endLine = node.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
         this.graphService.addNode({
           id: nodeId,
           type: 'interface',
@@ -139,7 +139,7 @@ export class TypeScriptParser implements LanguageParser {
         const startLine = node.startPosition.row + 1;
         const endLine = node.endPosition.row + 1;
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
         this.graphService.addNode({
           id: nodeId,
           type: 'enum',
@@ -160,7 +160,7 @@ export class TypeScriptParser implements LanguageParser {
         const startLine = node.startPosition.row + 1;
         const endLine = node.endPosition.row + 1;
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
         this.graphService.addNode({
           id: nodeId,
           type: 'type_alias',
@@ -184,7 +184,7 @@ export class TypeScriptParser implements LanguageParser {
         const endLine = node.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
         this.graphService.addNode({
           id: nodeId,
           type: 'function',
@@ -208,7 +208,7 @@ export class TypeScriptParser implements LanguageParser {
         const startLine = node.startPosition.row + 1;
         const endLine = node.endPosition.row + 1;
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
         this.graphService.addNode({
           id: nodeId,
           type: 'method',
@@ -231,7 +231,7 @@ export class TypeScriptParser implements LanguageParser {
         const startLine = node.startPosition.row + 1;
         const endLine = node.endPosition.row + 1;
         const codeSnippet = node.text;
-        const varId = `${filePath}:${varName}`;
+        const varId = `${scope}:${varName}`;
         this.graphService.addNode({
           id: varId,
           type: 'variable',
@@ -257,7 +257,7 @@ export class TypeScriptParser implements LanguageParser {
         const endLine = valueNode.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = valueNode.text;
-        const funcId = `${filePath}:${funcName}`;
+        const funcId = `${scope}:${funcName}`;
         this.graphService.addNode({
           id: funcId,
           type: 'function',

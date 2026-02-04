@@ -33,7 +33,7 @@ export class GraphBuilder {
           python: Python,
           javascript: JavaScript,
           go: Go,
-          typescript: TypeScript,
+          typescript: TypeScript.typescript,
       };
     }
 

@@ -22,7 +22,7 @@ export class PythonParser implements LanguageParser {
         const endLine = node.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
         
         const newNode: GraphNode = {
           id: nodeId,
@@ -47,7 +47,7 @@ export class PythonParser implements LanguageParser {
         const endLine = node.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
 
         const newNode: GraphNode = {
           id: nodeId,

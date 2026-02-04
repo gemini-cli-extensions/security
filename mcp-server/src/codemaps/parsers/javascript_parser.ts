@@ -23,7 +23,7 @@ export class JavaScriptParser implements LanguageParser {
         const endLine = node.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
 
         this.graphService.addNode({
           id: nodeId,
@@ -48,7 +48,7 @@ export class JavaScriptParser implements LanguageParser {
         const endLine = node.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
 
         this.graphService.addNode({
           id: nodeId,
@@ -82,7 +82,7 @@ export class JavaScriptParser implements LanguageParser {
         const endLine = node.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${methodName}`;
+        const nodeId = `${scope}:${methodName}`;
 
         this.graphService.addNode({
           id: nodeId,
@@ -123,7 +123,7 @@ export class JavaScriptParser implements LanguageParser {
         const startLine = node.startPosition.row + 1;
         const endLine = node.endPosition.row + 1;
         const codeSnippet = node.text;
-        const varId = `${filePath}:${varName}`;
+        const varId = `${scope}:${varName}`;
         this.graphService.addNode({
           id: varId,
           type: 'variable',
@@ -149,7 +149,7 @@ export class JavaScriptParser implements LanguageParser {
         const endLine = valueNode.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = valueNode.text;
-        const funcId = `${filePath}:${funcName}`;
+        const funcId = `${scope}:${funcName}`;
         this.graphService.addNode({
           id: funcId,
           type: 'function',

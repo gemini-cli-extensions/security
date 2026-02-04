@@ -23,7 +23,7 @@ export class GoParser implements LanguageParser {
         const endLine = node.endPosition.row + 1;
         const documentation = this._getDocstring(node);
         const codeSnippet = node.text;
-        const nodeId = `${filePath}:${name}`;
+            const nodeId = `${scope}:${name}`;
 
         this.graphService.addNode({
           id: nodeId,
@@ -41,8 +41,37 @@ export class GoParser implements LanguageParser {
       }
     } else if (node.type === 'type_declaration') {
       for (const spec of this._findAll(node, 'type_spec')) {
-        this._handleTypeSpec(spec, filePath);
+        this._handleTypeSpec(spec, filePath, scope);
       }
+    } else if (node.type === 'method_declaration') {
+        const receiverNode = node.childForFieldName('receiver');
+        const nameNode = node.childForFieldName('name');
+        if (receiverNode && nameNode) {
+            const receiverType = this._getReceiverType(receiverNode);
+            const methodName = nameNode.text;
+            if (receiverType) {
+                const parentNode = this.graphService.querySymbol(receiverType, filePath);
+                if (parentNode) {
+                    const startLine = node.startPosition.row + 1;
+                    const endLine = node.endPosition.row + 1;
+                    const documentation = this._getDocstring(node);
+                    const codeSnippet = node.text;
+                    const nodeId = `${parentNode.id}:${methodName}`;
+
+                    this.graphService.addNode({
+                        id: nodeId,
+                        type: 'function',
+                        name: methodName,
+                        startLine,
+                        endLine,
+                        documentation,
+                        codeSnippet,
+                    });
+                    newScope = nodeId;
+                    this.graphService.addEdge({ source: parentNode.id, target: nodeId, type: 'contains' });
+                }
+            }
+        }
     } else if (node.type === 'call_expression') {
       const callee = this._extractCalleeName(node);
       if (callee && scope) {
@@ -76,7 +105,7 @@ export class GoParser implements LanguageParser {
     return newScope;
   }
 
-  private _handleTypeSpec(specNode: SyntaxNode, filePath: string) {
+  private _handleTypeSpec(specNode: SyntaxNode, filePath: string, scope: string) {
     const nameNode = specNode.childForFieldName('name');
     const typeNode = specNode.childForFieldName('type');
     if (!nameNode || !typeNode) {
@@ -91,7 +120,7 @@ export class GoParser implements LanguageParser {
     const startLine = specNode.startPosition.row + 1;
     const endLine = specNode.endPosition.row + 1;
     const codeSnippet = specNode.text;
-    const nodeId = `${filePath}:${name}`;
+        const nodeId = `${scope}:${name}`;
 
     this.graphService.addNode({
       id: nodeId,
@@ -121,8 +150,7 @@ export class GoParser implements LanguageParser {
         continue;
       }
 
-      const parentNode = this.graphService.querySymbol(parentName);
-      if (parentNode) {
+                      const parentNode = this.graphService.querySymbol(parentName, filePath);      if (parentNode) {
         this.graphService.addEdge({ source: nodeId, target: parentNode.id, type: 'inherits' });
       }
     }
@@ -226,5 +254,18 @@ export class GoParser implements LanguageParser {
       return prev.text;
     }
     return '';
+  }
+
+  private _getReceiverType(node: SyntaxNode): string | null {
+    if (node.type === 'type_identifier') {
+      return node.text;
+    }
+    for (const child of node.children) {
+      const found = this._getReceiverType(child);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
   }
 }

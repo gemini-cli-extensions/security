@@ -16,6 +16,7 @@ describe('filesystem', () => {
     fs.writeFileSync('test.txt', 'hello');
     execSync('git add .');
     execSync('git commit -m "initial commit"');
+    execSync('git update-ref refs/remotes/origin/HEAD HEAD');
   });
 
   afterAll(() => {
@@ -29,7 +30,9 @@ describe('filesystem', () => {
 
   it('should return a diff of the current changes', () => {
     fs.writeFileSync('test.txt', 'hello world');
+    execSync('git add .');
+    execSync('git commit -m "second commit"'); // Commit the change
     const diff = getAuditScope();
-    expect(diff).toContain('hello world');
+    expect(diff).toContain('hello world'); // Now expects the diff between first and second commit
   });
 });
