@@ -81,7 +81,7 @@ export function parseMarkdownToDict(content: string): Finding[] {
     if (!section || !section.includes("Vulnerability:")) continue;
 
     const extract = (label: string): string | null => {
-      const fieldNames = 'Vulnerability|Severity|Source|Sink|Data|Line|Description|Recommendation';
+      const fieldNames = 'Vulnerability Type|Severity|Source Location|Sink Location|Data Type|Line Content|Description|Recommendation';
       const patternStr = `(?:-?\\s*\\**)?${label}\\**:\\s*([\\s\\S]*?)(?=\\n(?:-?\\s*\\**)?(?:${fieldNames})|$)`;
       const pattern = new RegExp(patternStr, 'i');
       const match = section.match(pattern);
