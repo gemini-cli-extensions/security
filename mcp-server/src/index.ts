@@ -67,26 +67,27 @@ server.tool(
 
 server.tool(
   'convert_report_to_json',
-  'Converts a Markdown security report into a structured JSON format.',
-  {
-    reportPath: z.string().describe('Absolute path to the Markdown report file.'),
-    outputPath: z.string().optional().describe('Optional path to save the JSON output.'),
-  } as any,
-  (async (input: { reportPath: string; outputPath?: string }) => {
+  'Converts the Markdown security report into a JSON file named security_report.json in the .gemini_security folder.',
+  {} as any,
+  (async () => {
     try {
-      const content = await fs.readFile(input.reportPath, 'utf-8');
+      const reportPath = '.gemini_security/DRAFT_SECURITY_REPORT.md';
+      const outputPath = '.gemini_security/security_report.json';
+      
+      const content = await fs.readFile(reportPath, 'utf-8');
       const results = parseMarkdownToDict(content);
 
-      if (input.outputPath) {
-        await fs.writeFile(input.outputPath, JSON.stringify(results, null, 2));
-      }
+      await fs.writeFile(outputPath, JSON.stringify(results, null, 2));
 
       return {
-        content: [{ type: 'text', text: JSON.stringify(results) }]
+        content: [{ 
+          type: 'text', 
+          text: `Successfully created JSON report at ${outputPath}` 
+        }]
       };
     } catch (error: any) {
       return {
-        content: [{ type: 'text', text: JSON.stringify({ error: error.message }) }],
+        content: [{ type: 'text', text: `Error converting to JSON: ${error.message}` }],
         isError: true
       };
     }

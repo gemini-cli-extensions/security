@@ -20,13 +20,6 @@ Your primary objective during the **"SAST Recon on [file]"** task is to identify
     *   `- [ ] Investigate data flow from [variable_name] on line [line_number]`.
 *   You are not tracing or analyzing the flow yet. You are only planting flags for later investigation. This ensures you scan the entire file and identify all potential starting points before diving deep.
 
-## Skillset: Format Handling
-* **Default Behavior**: Always provide the security analysis report in Markdown format within the conversation and as a file.
-* **Conditional JSON Output**: If the user explicitly requests JSON (e.g., via a flag like `--json` or natural language), you MUST:
-    1.  Complete the standard Markdown report first.
-    2.  Call the `convert_report_to_json` tool using the path to the final report.
-    3.  Inform the user where the JSON file has been saved.
-
 ---
 
 #### Role in the **Investigation Pass**
@@ -74,13 +67,13 @@ For EVERY task, you MUST follow this procedure. This loop separates high-level s
     *   **Action:** Read the entire `DRAFT_SECURITY_REPORT.md` file.
     *   **Action:** Critically review **every single finding** in the draft against the **"High-Fidelity Reporting & Minimizing False Positives"** principles and its five-question checklist.
     *   **Action:** You must use the `gemini-cli-security` MCP server to get the line numbers for each finding. For each vulnerability you have found, you must call the `find_line_numbers` tool with the `filePath` and the `snippet` of the vulnerability. You will then add the `startLine` and `endLine` to the final report.
-    *   **Action:** If the user requested JSON output (e.g., via `--json` in context), call the `convert_report_to_json` tool now, using the current `DRAFT_SECURITY_REPORT.md` as the source.
     *   **Action:** Construct the final, clean report in your memory.
 
 5.  **Phase 4: Final Reporting & Cleanup**
     *   **Action:** Output the final, reviewed report as your response to the user.
     *   **Action:** If, after the review, no vulnerabilities remain, your final output **MUST** be the standard "clean report" message specified by the task prompt.
-    *   **Action:** ONLY AFTER the final report is delivered and any requested JSON conversion is complete, remove the temporary files (`SECURITY_ANALYSIS_TODO.md` and `DRAFT_SECURITY_REPORT.md`) from the `.gemini_security/` directory. Only remove these files and do not remove any other user files under any circumstances.
+    *   **Action:** ONLY IF the user requested JSON output (e.g., via `--json` in context or natural language), call the `convert_report_to_json` tool. Inform the user that the JSON version of the report is available at .gemini_security/security_report.json.
+    *   **Action:** After the final report is delivered and any requested JSON report is complete, remove the temporary files (`SECURITY_ANALYSIS_TODO.md` and `DRAFT_SECURITY_REPORT.md`) from the `.gemini_security/` directory. Only remove these files and do not remove any other user files under any circumstances.
 
 
 ### Example of the Workflow in `SECURITY_ANALYSIS_TODO.md`
@@ -124,6 +117,7 @@ You will now begin executing the plan. The following are your precise instructio
     *   You will rewrite the `SECURITY_ANALYSIS_TODO.md` file.
     *   Out of Scope Files: Files that are primarily used for managing dependencies like lockfiles (e.g., `package-lock.json`, `package.json` `yarn.lock`, `go.sum`) should be considered out of scope and **must be omitted from the plan entirely**, as they contain no actionable code to review.
     *   You **MUST** replace the line `- [ ] Conduct a two-pass SAST analysis on all files within scope.` with a specific **"SAST Recon on [file]"** task for each file you discovered in the previous step.
+    *   Addtionally, if the user requested JSON output (e.g., via `--json` in context or natural language), add a final task: - [ ] Generate JSON report.
 
 After completing these two initial tasks, continue executing the dynamically generated plan according to your **Core Operational Loop**.
 
