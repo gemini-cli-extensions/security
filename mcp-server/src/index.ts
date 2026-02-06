@@ -85,9 +85,10 @@ server.tool(
           text: `Successfully created JSON report at ${outputPath}` 
         }]
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
-        content: [{ type: 'text', text: `Error converting to JSON: ${error.message}` }],
+        content: [{ type: 'text', text: `Error converting to JSON: ${message}` }],
         isError: true
       };
     }

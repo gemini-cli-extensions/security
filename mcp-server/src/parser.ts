@@ -5,7 +5,7 @@
  */
 
 export interface Location {
-  File: string | null;
+  file: string | null;
   startLine: number | null;
   endLine: number | null;
 }
@@ -34,7 +34,7 @@ export interface Finding {
  */
 function parseLocation(locationStr: string | null): Location {
   if (!locationStr) {
-    return { File: null, startLine: null, endLine: null };
+    return { file: null, startLine: null, endLine: null };
   }
 
   const cleanStr = locationStr.replace(/`/g, '').trim();
@@ -53,10 +53,10 @@ function parseLocation(locationStr: string | null): Location {
       start = parseInt(match[2], 10);
       end = start;
     }
-    return { File: filePath, startLine: start, endLine: end };
+    return { file: filePath, startLine: start, endLine: end };
   }
 
-  return { File: cleanStr, startLine: null, endLine: null };
+  return { file: cleanStr, startLine: null, endLine: null };
 }
 
 /**
@@ -89,7 +89,7 @@ export function parseMarkdownToDict(content: string): Finding[] {
     };
 
     const rawSource = extract("Source Location");
-  const cleanContent = content.replace(/^\\s*[-*]\\s*/gm, '').replace(/\\*\\*/g, '');
+    const rawSink = extract("Sink Location");
 
     let lineContent = extract("Line Content");
     if (lineContent) {
