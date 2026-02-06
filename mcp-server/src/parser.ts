@@ -89,7 +89,7 @@ export function parseMarkdownToDict(content: string): Finding[] {
     };
 
     const rawSource = extract("Source Location");
-    const rawSink = extract("Sink Location");
+  const cleanContent = content.replace(/^\\s*[-*]\\s*/gm, '').replace(/\\*\\*/g, '');
 
     let lineContent = extract("Line Content");
     if (lineContent) {
