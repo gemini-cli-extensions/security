@@ -70,10 +70,12 @@ function parseLocation(locationStr: string | null): Location {
 export function parseMarkdownToDict(content: string): Finding[] {
   const findings: Finding[] = [];
 
-  // Remove markdown formatting (bullet points at line start, ** markers), preserve hyphens in text
-  const cleanContent = content.replace(/^\s*[\*\-]\s*/gm, '').replace(/\*\*/g, '');
+  // Remove markdown bullet points (only at line start), markdown emphasis, and preserve hyphens/underscores in text
+  const cleanContent = content
+    .replace(/^\s*[\*\-]\s*/gm, '') // Remove bullet points at line start
+    .replace(/\*\*/g, ''); // Remove ** markdown
   
-  // Split each finding by "Vulnerability:" preceded by newline
+  // Split by "Vulnerability:" preceded by newline
   const sections = cleanContent.split(/\n(?=#{1,6} |\s*Vulnerability:)/);
 
   for (let section of sections) {
@@ -81,7 +83,7 @@ export function parseMarkdownToDict(content: string): Finding[] {
     if (!section || !section.includes("Vulnerability:")) continue;
 
     const extract = (label: string): string | null => {
-      const fieldNames = 'Vulnerability Type|Severity|Source Location|Sink Location|Data Type|Line Content|Description|Recommendation';
+      const fieldNames = 'Vulnerability|Severity|Source|Sink|Data|Line|Description|Recommendation';
       const patternStr = `(?:-?\\s*\\**)?${label}\\**:\\s*([\\s\\S]*?)(?=\\n(?:-?\\s*\\**)?(?:${fieldNames})|$)`;
       const pattern = new RegExp(patternStr, 'i');
       const match = section.match(pattern);
