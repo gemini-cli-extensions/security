@@ -13,6 +13,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { getAuditScope } from './filesystem.js';
 import { findLineNumbers } from './security.js';
+import { parseMarkdownToDict } from './parser.js';
 
 import { runPoc } from './poc.js';
 
@@ -62,6 +63,34 @@ server.tool(
     filePath: z.string().describe('The absolute path to the PoC file to run.'),
   } as any,
   (input: { filePath: string }) => runPoc(input)
+);
+
+server.tool(
+  'convert_report_to_json',
+  'Converts a Markdown security report into a structured JSON format.',
+  {
+    reportPath: z.string().describe('Absolute path to the Markdown report file.'),
+    outputPath: z.string().optional().describe('Optional path to save the JSON output.'),
+  } as any,
+  (async (input: { reportPath: string; outputPath?: string }) => {
+    try {
+      const content = await fs.readFile(input.reportPath, 'utf-8');
+      const results = parseMarkdownToDict(content);
+
+      if (input.outputPath) {
+        await fs.writeFile(input.outputPath, JSON.stringify(results, null, 2));
+      }
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(results) }]
+      };
+    } catch (error: any) {
+      return {
+        content: [{ type: 'text', text: JSON.stringify({ error: error.message }) }],
+        isError: true
+      };
+    }
+  }) as any
 );
 
 server.registerPrompt(
