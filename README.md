@@ -25,15 +25,47 @@ gemini extensions install https://github.com/gemini-cli-extensions/security
 
 The Security extension adds the `/security:analyze` command to Gemini CLI which analyzes code changes on your current branch for common security vulnerabilities and provides an intelligent, Gemini-powered security report to improve the repository's security posture.
 
+### Security Report Output
+
+When you run `/security:analyze`, the extension outputs a detailed security report for each identified issue for the user to see. It contains the following fields as seen in `security/GEMINI.md`:
+
+- **Vulnerability:** A brief name for the issue (e.g., "Cross-Site Scripting," "Hardcoded API Key," "PII Leak in Logs", "PII Sent to 3P").
+- **Vulnerability Type:** The category that this issue falls closest under (e.g., "Security", "Privacy").
+- **Severity:** Critical, High, Medium, or Low.
+- **Source Location:** The file path where the vulnerability was introduced and the line numbers if that is available.
+- **Sink Location:** If this is a privacy issue, includes the location where sensitive data is exposed or leaves the application's trust boundary.
+- **Data Type:** If this is a privacy issue, includes the kind of PII found (e.g., "Email Address", "API Secret").
+- **Line Content:** The complete line of code where the vulnerability was found.
+- **Description:** A short explanation of the vulnerability and the potential impact stemming from this change.
+- **Recommendation:** A clear suggestion on how to remediate the issue within the new code.
+
 Important: This report is a first-pass analysis, not a complete security audit. Use in combination with other tools and manual review.
 
 Note: The /security:analyze command is currently designed for interactive use. Support for non-interactive sessions is planned for a future release (tracked in [issue #20](https://github.com/gemini-cli-extensions/security/issues/20)).
 
 ### Customize the `/security:analyze` command
 
-By default, the `/security:analyze` command determines the scope of the analysis using `git diff --merge-base origin/HEAD`. However, to customize the scope, you can add instructions to the command using natural language. For example, to analyze all files in `scripts` folder, you can run the command as
+By default, the `/security:analyze` command determines the scope of the analysis using `git diff --merge-base origin/HEAD`. However, to customize the scope, you can add instructions to the command using natural language.
+
+**File and Directory Scoping**
+
+To analyze specific files or directories, provide natural language instructions:
 ```bash
 /security:analyze Analyze all the source code under the script folder. Skip the docs, config files and package files.
+```
+
+**Branch-based Analysis**
+
+To analyze code changes between branches, specify the branches in your instructions using natural language:
+```bash
+/security:analyze Analyze all changes on the feature/auth-upgrade branch compared to main.
+```
+
+**Commit-based Analysis**
+
+To analyze changes between specific commits, specify both using natural language:
+```bash
+/security:analyze Analyze the security changes between commits abc1234 and def5678.
 ```
 
 ![Customize analysis command](./assets/customize_command.gif)
