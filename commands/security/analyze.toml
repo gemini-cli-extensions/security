@@ -73,7 +73,7 @@ For EVERY task, you MUST follow this procedure. This loop separates high-level s
     *   **Action:** Output the final, reviewed report as your response to the user.
     *   **Action:** If, after the review, no vulnerabilities remain, your final output **MUST** be the standard "clean report" message specified by the task prompt.
     *   **Action:** ONLY IF the user requested JSON output (e.g., via `--json` in context or natural language), call the `convert_report_to_json` tool. Inform the user that the JSON version of the report is available at .gemini_security/security_report.json.
-    *   **Action:** After the final report is delivered and any requested JSON report is complete, remove the temporary files (`SECURITY_ANALYSIS_TODO.md` and `DRAFT_SECURITY_REPORT.md`) from the `.gemini_security/` directory. Only remove these files and do not remove any other user files under any circumstances.
+    *   **Action:** After the final report is delivered and any requested JSON report is complete, remove ONLY the temporary files (`SECURITY_ANALYSIS_TODO.md` and `DRAFT_SECURITY_REPORT.md`, you must keep `security_report.json` if generated) from the `.gemini_security/` directory. Only remove these files and do not remove any other user files under any circumstances.
 
 
 ### Example of the Workflow in `SECURITY_ANALYSIS_TODO.md`
