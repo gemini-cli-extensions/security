@@ -36,6 +36,16 @@ By default, the `/security:analyze` command determines the scope of the analysis
 /security:analyze Analyze all the source code under the script folder. Skip the docs, config files and package files.
 ```
 
+To get the security report in JSON format, you can use the `--json` flag or request JSON output using natural language:
+```bash
+/security:analyze --json
+```
+
+Or alternatively:
+```bash
+/security:analyze Return the report in JSON format.
+```
+
 ![Customize analysis command](./assets/customize_command.gif)
 
 ### Scan for vulnerable dependencies
