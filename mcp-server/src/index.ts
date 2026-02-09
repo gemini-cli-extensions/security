@@ -71,8 +71,8 @@ server.tool(
   {} as any,
   (async () => {
     try {
-      const reportPath = '.gemini_security/DRAFT_SECURITY_REPORT.md';
-      const outputPath = '.gemini_security/security_report.json';
+      const reportPath = path.join(process.cwd(), '.gemini_security/DRAFT_SECURITY_REPORT.md');
+      const outputPath = path.join(process.cwd(), '.gemini_security/security_report.json');
       
       const content = await fs.readFile(reportPath, 'utf-8');
       const results = parseMarkdownToDict(content);
