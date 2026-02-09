@@ -14,11 +14,9 @@ export interface Finding {
   vulnerability: string | null;
   vulnerabilityType: string | null;
   severity: string | null;
-  extension: {
-    sourceLocation: Location;
-    sinkLocation: Location;
-    dataType: string | null;
-  };
+  dataType: string | null;
+  sourceLocation: Location;
+  sinkLocation: Location;
   lineContent: string | null;
   description: string | null;
   recommendation: string | null;
@@ -102,11 +100,9 @@ export function parseMarkdownToDict(content: string): Finding[] {
       vulnerability: extract("Vulnerability"),
       vulnerabilityType: extract("Vulnerability Type"),
       severity: extract("Severity"),
-      extension: {
-        sourceLocation: parseLocation(rawSource),
-        sinkLocation: parseLocation(rawSink),
-        dataType: extract("Data Type")
-      },
+      dataType: extract("Data Type"),
+      sourceLocation: parseLocation(rawSource),
+      sinkLocation: parseLocation(rawSink),
       lineContent,
       description: extract("Description"),
       recommendation: extract("Recommendation")

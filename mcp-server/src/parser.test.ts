@@ -27,12 +27,10 @@ Recommendation: Move the secret to an environment variable.
       vulnerabilityType: 'Security',
       severity: 'Critical',
       lineContent: 'const KEY = "sk_live_12345";',
-      extension: {
-        sourceLocation: {
-          file: 'config/settings.js',
-          startLine: 15,
-          endLine: 15
-        }
+      sourceLocation: {
+        file: 'config/settings.js',
+        startLine: 15,
+        endLine: 15
       }
     });
   });
@@ -53,7 +51,7 @@ Recommendation: Redact the email address before logging.
     const results = parseMarkdownToDict(mdContent);
 
     expect(results).toHaveLength(1);
-    expect(results[0].extension).toMatchObject({
+    expect(results[0]).toMatchObject({
       sinkLocation: {
         file: 'console.log',
         startLine: 45,
@@ -102,7 +100,7 @@ Recommendation: Use a templating engine with auto-escaping.
 
     expect(results[0].vulnerability).toBe('Hardcoded Secret');
     expect(results[0].severity).toBe('High');
-    expect(results[0].extension.sourceLocation.file).toBe('index.js');
+    expect(results[0].sourceLocation.file).toBe('index.js');
     expect(results[0].lineContent).toBe('const secret = "password";');
   });
 
@@ -132,7 +130,7 @@ Recommendation: Verify the vulnerability details.
       severity: 'High',
       lineContent: 'const apiKey = process.env.API_KEY;'
     });
-    expect(results[0].extension.sourceLocation.file).toBe('src/index.ts');
+    expect(results[0].sourceLocation.file).toBe('src/index.ts');
   });
 
   it('should handle missing end line number', () => {
@@ -149,7 +147,7 @@ Recommendation: Check this line.
     const results = parseMarkdownToDict(mdContent);
 
     expect(results).toHaveLength(1);
-    expect(results[0].extension.sourceLocation).toMatchObject({
+    expect(results[0].sourceLocation).toMatchObject({
       file: 'app.js',
       startLine: 42
     });
@@ -175,12 +173,12 @@ Recommendation: Use proper logging.
       vulnerabilityType: 'Privacy',
       severity: 'Low'
     });
-    expect(results[0].extension.dataType).toBe('User ID');
+    expect(results[0].dataType).toBe('User ID');
     expect(
-      results[0].extension.sinkLocation === undefined ||
-      (results[0].extension.sinkLocation?.file === null &&
-       results[0].extension.sinkLocation?.startLine === null &&
-       results[0].extension.sinkLocation?.endLine === null)
+      results[0].sinkLocation === undefined ||
+      (results[0].sinkLocation?.file === null &&
+       results[0].sinkLocation?.startLine === null &&
+       results[0].sinkLocation?.endLine === null)
     ).toBe(true);
   });
 });
