@@ -82,7 +82,7 @@ server.tool(
 
     const absoluteFilePath = path.resolve(process.cwd(), sanitizedFilePath);
 
-    const GEMINI_SECURITY_DIR = path.join(process.cwd(), '.gemini_security_new');
+    const GEMINI_SECURITY_DIR = path.join(process.cwd(), '.gemini_security');
 
     if (!graphBuilt) {
       const loaded = await graphService.loadGraph(GEMINI_SECURITY_DIR);
