@@ -11,15 +11,120 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { promises as fs } from 'fs';
 import path from 'path';
+import os from 'os';
 import { getAuditScope } from './filesystem.js';
 import { findLineNumbers } from './security.js';
-
+import { GraphBuilder, GraphService } from './codemaps/index.js';
 import { runPoc } from './poc.js';
 
 const server = new McpServer({
   name: 'gemini-cli-security',
   version: '0.1.0',
 });
+
+const SUPPORTED_EXTS = ['.py', '.js', '.ts', 'go'];
+const DEFAULT_EXCLUDES = ['.git', 'node_modules', 'dist', 'build', 'venv', '__pycache__'];
+
+async function scan_dir(dir_path: string, excludes = DEFAULT_EXCLUDES, exts = SUPPORTED_EXTS) {
+  const files: string[] = [];
+  
+  async function scan(currentPath: string) {
+    const entries = await fs.readdir(currentPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(currentPath, entry.name);
+      if (excludes.includes(entry.name)) {
+        continue;
+      }
+      if (entry.isDirectory()) {
+        await scan(fullPath);
+      } else if (exts.some(ext => entry.name.endsWith(ext))) {
+        files.push(fullPath);
+      }
+    }
+  }
+
+  await scan(dir_path);
+  return files;
+}
+
+const graphService = new GraphService();
+const graphBuilder = new GraphBuilder(graphService);
+let graphBuilt = false;
+
+server.tool(
+  'get_enclosing_entity',
+  'Get the nearest enclosing node (function/class) details (name, type, range).',
+  {
+    file_path: z.string().describe('The path to the file.'),
+    line: z.number().describe('The line number.'),
+  } as any,
+  async (input: any) => {
+
+    // The first call can be empty, so we guard against it.
+    if (!input.file_path) {
+      return {
+        content: [{ type: 'text', text: 'Invalid argument: file_path is missing.' }],
+      };
+    }
+
+    const { file_path, line } = input as { file_path: string; line: number };
+
+    // Sanitize and resolve the file path to be absolute
+    let sanitizedFilePath = file_path.trim();
+    if (sanitizedFilePath.startsWith('"') && sanitizedFilePath.endsWith('"')) {
+      sanitizedFilePath = sanitizedFilePath.substring(1, sanitizedFilePath.length - 1);
+    }
+    if (sanitizedFilePath.startsWith('a/')) {
+      sanitizedFilePath = sanitizedFilePath.substring(2);
+    } else if (sanitizedFilePath.startsWith('b/')) {
+      sanitizedFilePath = sanitizedFilePath.substring(2);
+    }
+
+    const absoluteFilePath = path.resolve(process.cwd(), sanitizedFilePath);
+
+    const GEMINI_SECURITY_DIR = path.join(process.cwd(), '.gemini_security');
+
+    if (!graphBuilt) {
+      const loaded = await graphService.loadGraph(GEMINI_SECURITY_DIR);
+      if (!loaded) {
+        const files = await scan_dir(process.cwd());
+        for (const file of files) {
+          try {
+            await graphBuilder.buildGraph(file);
+          } catch (e: any) {
+            // Ignore errors for unsupported file types
+          }
+        }
+        await graphService.saveGraph(GEMINI_SECURITY_DIR);
+      }
+      graphBuilt = true;
+    }
+
+    const entity = graphService.findEnclosingEntity(absoluteFilePath, line);
+
+    if (entity) {
+      const response = {
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify(entity, null, 2),
+          },
+        ],
+      };
+      return response as any;
+    } else {
+      const response = {
+        content: [
+          {
+            type: 'text' as const,
+            text: 'No enclosing entity found.',
+          },
+        ],
+      };
+      return response as any;
+    }
+  }
+);
 
 server.tool(
   'find_line_numbers',

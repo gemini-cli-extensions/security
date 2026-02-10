@@ -15,6 +15,7 @@ describe('filesystem', () => {
     fs.writeFileSync('test.txt', 'hello');
     execSync('git add .');
     execSync('git commit -m "initial commit"');
+    execSync('git update-ref refs/remotes/origin/HEAD HEAD');
   });
 
   afterAll(() => {
@@ -35,10 +36,12 @@ describe('filesystem', () => {
   });
 
   it('should return a diff of the current changes when no branches or commits are specified', () => {
-    fs.writeFileSync('test.txt', 'hello world');
-    // Defaults to 'git diff' with remote removed
+    // Modify a file but do not commit it
+    fs.writeFileSync('test.txt', 'uncommitted change');
     const diff = getAuditScope();
-    expect(diff).toContain('hello world');
+    expect(diff).toContain('diff --git a/test.txt b/test.txt');
+    expect(diff).toContain('-hello');
+    expect(diff).toContain('+uncommitted change');
   });
 
   it('should return a diff between two specific branches', () => {
