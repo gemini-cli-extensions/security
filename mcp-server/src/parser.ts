@@ -22,6 +22,52 @@ export interface Finding {
   recommendation: string | null;
 }
 
+const FIELD_NAMES = [
+  'Vulnerability',
+  'Severity',
+  'Source',
+  'Sink',
+  'Data',
+  'Line',
+  'Description',
+  'Recommendation',
+].join('|'); // add labels here
+const patternCache = new Map<string, RegExp>();
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Builds and caches a regex pattern for a given label to extract its content from a markdown section.
+ * The pattern looks for the label followed by a colon and captures everything until the next field or end of section.
+ *
+ * @param label - The label for which to build the regex pattern (e.g., "Vulnerability", "Severity").
+ * @returns A RegExp object that can be used to extract the content for the specified label.
+ */
+const buildPattern = (label: string) => {
+  const key = label.toLowerCase();
+  if (patternCache.has(key)) return patternCache.get(key)!;
+  const escapedLabel = escapeRegExp(label);
+  const rx = new RegExp(
+    `(?:-?\\s*\\**)?${escapedLabel}\\**:\\s*([\\s\\S]*?)(?=\\n(?:-?\\s*\\**)?(?:${FIELD_NAMES})|$)`,
+    'i'
+  );
+  patternCache.set(key, rx);
+  return rx;
+};
+
+/**
+ * Helper function to extract a specific field from a markdown section using a label.
+ * It constructs a regex pattern based on the label and captures the content until the next field or end of section.
+ *
+ * @param section - The markdown section to search within.
+ * @param label - The label of the field to extract (e.g., "Vulnerability", "Severity").
+ * @returns The extracted content for the specified label, or null if not found.
+ */
+function extractFromSection(section: string, label: string): string | null {
+  const pattern = buildPattern(label);
+  const match = section.match(pattern);
+  return match ? match[1].trim() : null;
+};
+
 /**
  * Parses a markdown string containing security findings into a structured format.
  * The markdown should follow a specific format where each finding starts with "Vulnerability:" and includes fields like "Severity:", "Source Location:", etc.
@@ -80,32 +126,24 @@ export function parseMarkdownToDict(content: string): Finding[] {
     section = section.trim();
     if (!section || !section.includes("Vulnerability:")) continue;
 
-    const extract = (label: string): string | null => {
-      const fieldNames = 'Vulnerability|Severity|Source|Sink|Data|Line|Description|Recommendation';
-      const patternStr = `(?:-?\\s*\\**)?${label}\\**:\\s*([\\s\\S]*?)(?=\\n(?:-?\\s*\\**)?(?:${fieldNames})|$)`;
-      const pattern = new RegExp(patternStr, 'i');
-      const match = section.match(pattern);
-      return match ? match[1].trim() : null;
-    };
+    const rawSource = extractFromSection(section, "Source Location");
+    const rawSink = extractFromSection(section, "Sink Location");
 
-    const rawSource = extract("Source Location");
-    const rawSink = extract("Sink Location");
-
-    let lineContent = extract("Line Content");
+    let lineContent = extractFromSection(section, "Line Content");
     if (lineContent) {
       lineContent = lineContent.replace(/^```[a-z]*\n|```$/gm, '').trim();
     }
 
     findings.push({
-      vulnerability: extract("Vulnerability"),
-      vulnerabilityType: extract("Vulnerability Type"),
-      severity: extract("Severity"),
-      dataType: extract("Data Type"),
+      vulnerability: extractFromSection(section, "Vulnerability"),
+      vulnerabilityType: extractFromSection(section, "Vulnerability Type"),
+      severity: extractFromSection(section, "Severity"),
+      dataType: extractFromSection(section, "Data Type"),
       sourceLocation: parseLocation(rawSource),
       sinkLocation: parseLocation(rawSink),
       lineContent,
-      description: extract("Description"),
-      recommendation: extract("Recommendation")
+      description: extractFromSection(section, "Description"),
+      recommendation: extractFromSection(section, "Recommendation")
     });
   }
 
