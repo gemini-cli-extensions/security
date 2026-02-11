@@ -15,6 +15,8 @@ import { getAuditScope } from './filesystem.js';
 import { findLineNumbers } from './security.js';
 
 import { runPoc } from './poc.js';
+import { loadKnowledge, VulnerabilityType } from './knowledge.js';
+import { SECURITY_FIX_PROMPT_NAME, SecurityFixArgsSchema, securityFixPromptHandler } from './prompts/security_fix.js';
 
 const server = new McpServer({
   name: 'gemini-cli-security',
@@ -193,6 +195,17 @@ them by updating. DO NOT try to automatically update the dependencies in any cir
     ],
   })
 );
+
+server.registerPrompt(
+  SECURITY_FIX_PROMPT_NAME,
+  {
+    title: 'Security Fixer',
+    description: '[Experimental] Fixes a security vulnerability in a given file using best practices from the knowledge base.',
+    argsSchema: SecurityFixArgsSchema as any,
+  },
+  securityFixPromptHandler as any
+);
+
 async function startServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);

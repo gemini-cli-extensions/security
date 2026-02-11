@@ -3,7 +3,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -R src/knowledge dist/",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "test": "vitest",
