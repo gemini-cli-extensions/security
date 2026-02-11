@@ -13,6 +13,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { getAuditScope } from './filesystem.js';
 import { findLineNumbers } from './security.js';
+import { parseMarkdownToDict } from './parser.js';
 
 import { runPoc } from './poc.js';
 
@@ -62,6 +63,36 @@ server.tool(
     filePath: z.string().describe('The absolute path to the PoC file to run.'),
   } as any,
   (input: { filePath: string }) => runPoc(input)
+);
+
+server.tool(
+  'convert_report_to_json',
+  'Converts the Markdown security report into a JSON file named security_report.json in the .gemini_security folder.',
+  {} as any,
+  (async () => {
+    try {
+      const reportPath = path.join(process.cwd(), '.gemini_security/DRAFT_SECURITY_REPORT.md');
+      const outputPath = path.join(process.cwd(), '.gemini_security/security_report.json');
+      
+      const content = await fs.readFile(reportPath, 'utf-8');
+      const results = parseMarkdownToDict(content);
+
+      await fs.writeFile(outputPath, JSON.stringify(results, null, 2));
+
+      return {
+        content: [{ 
+          type: 'text', 
+          text: `Successfully created JSON report at ${outputPath}` 
+        }]
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        content: [{ type: 'text', text: `Error converting to JSON: ${message}` }],
+        isError: true
+      };
+    }
+  }) as any
 );
 
 server.registerPrompt(
