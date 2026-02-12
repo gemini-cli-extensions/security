@@ -99,7 +99,7 @@ Recommendation: Use HTTPS instead of HTTP.
     });
     
     // Check that the code suggestion was extracted correctly despite surrounding text
-    expect(results[0].codeSuggestion).toContain('const safePath = path.basename(req.query.file);');
+    expect(results[0].codeSuggestion).toBe('const safePath = path.basename(req.query.file);\nconst data = fs.readFileSync(path.join(__dirname, \'safe_dir\', safePath));');
     
     // Check that recommendation text preserved the parts before and after the code block
     expect(results[0].recommendation).toContain('First, sanitize the input');

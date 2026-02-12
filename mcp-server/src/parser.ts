@@ -143,11 +143,15 @@ export function parseMarkdownToDict(content: string): Finding[] {
     let recommendation = extractFromSection(section, "Recommendation");
     if (recommendation) {
       // Extract code blocks from recommendation (```language...code...```)
-      const codeMatch = recommendation.match(/```[a-z]*\n([\s\S]*?)```/);
+      const codeMatch = recommendation.match(/```[^\n`]*\n?([\s\S]*?)```/);
       codeSuggestion = codeMatch ? codeMatch[1].trim() : null;
 
       // Remove code blocks from recommendation text
-      recommendation = recommendation.replace(/```[a-z]*\n[\s\S]*?```/g, '').trim();
+      if (codeMatch) {
+        recommendation = recommendation.replace(codeMatch[0], '').trim();
+      } else {
+        recommendation = recommendation.replace(/```[a-z]*\n[\s\S]*?```/g, '').trim();
+      }
     }
 
     findings.push({
