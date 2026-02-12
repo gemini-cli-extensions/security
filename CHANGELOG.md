@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/gemini-cli-extensions/security/compare/v0.4.0...v0.5.0) (2026-02-12)
+
+
+### Features
+
+* output security reports as JSON when requested ([#138](https://github.com/gemini-cli-extensions/security/issues/138)) ([83406c2](https://github.com/gemini-cli-extensions/security/commit/83406c2299eb71272e9e54505639938342298c07))
+* Support JSON output `codeSuggestions` Field [wip] ([#139](https://github.com/gemini-cli-extensions/security/issues/139)) ([d005c90](https://github.com/gemini-cli-extensions/security/commit/d005c90e5c86154b2c356619f472939848a94f5a))
+
 ## [0.4.0](https://github.com/gemini-cli-extensions/security/compare/v0.3.0...v0.4.0) (2025-12-17)
 
 
