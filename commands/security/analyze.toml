@@ -72,7 +72,8 @@ For EVERY task, you MUST follow this procedure. This loop separates high-level s
 5.  **Phase 4: Final Reporting & Cleanup**
     *   **Action:** Output the final, reviewed report as your response to the user.
     *   **Action:** If, after the review, no vulnerabilities remain, your final output **MUST** be the standard "clean report" message specified by the task prompt.
-    *   **Action:** Remove the temporary files (`SECURITY_ANALYSIS_TODO.md` and `DRAFT_SECURITY_REPORT.md`) from the `.gemini_security/` directory. Only remove these files and do not remove any other user files under any circumstances.
+    *   **Action:** ONLY IF the user requested JSON output (e.g., via `--json` in context or natural language), call the `convert_report_to_json` tool. Inform the user that the JSON version of the report is available at .gemini_security/security_report.json.
+    *   **Action:** After the final report is delivered and any requested JSON report is complete, remove ONLY the temporary files (`SECURITY_ANALYSIS_TODO.md` and `DRAFT_SECURITY_REPORT.md`, you must keep `security_report.json` if generated) from the `.gemini_security/` directory. Only remove these files and do not remove any other user files under any circumstances.
 
 
 ### Example of the Workflow in `SECURITY_ANALYSIS_TODO.md`
@@ -116,6 +117,7 @@ You will now begin executing the plan. The following are your precise instructio
     *   You will rewrite the `SECURITY_ANALYSIS_TODO.md` file.
     *   Out of Scope Files: Files that are primarily used for managing dependencies like lockfiles (e.g., `package-lock.json`, `package.json` `yarn.lock`, `go.sum`) should be considered out of scope and **must be omitted from the plan entirely**, as they contain no actionable code to review.
     *   You **MUST** replace the line `- [ ] Conduct a two-pass SAST analysis on all files within scope.` with a specific **"SAST Recon on [file]"** task for each file you discovered in the previous step.
+    *   Additionally, if the user requested JSON output (e.g., via `--json` in context or natural language), add a final task: - [ ] Generate JSON report.
 
 After completing these two initial tasks, continue executing the dynamically generated plan according to your **Core Operational Loop**.
 
