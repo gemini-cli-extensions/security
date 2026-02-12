@@ -24,10 +24,12 @@ export interface Finding {
 
 const FIELD_NAMES = [
   'Vulnerability',
+  'Vulnerability Type',
   'Severity',
   'Source',
   'Sink',
   'Data',
+  'Data Type',
   'Line',
   'Description',
   'Recommendation',
@@ -66,15 +68,14 @@ function extractFromSection(section: string, label: string): string | null {
   const pattern = buildPattern(label);
   const match = section.match(pattern);
   return match ? match[1].trim() : null;
-};
+}
 
 /**
- * Parses a markdown string containing security findings into a structured format.
- * The markdown should follow a specific format where each finding starts with "Vulnerability:" and includes fields like "Severity:", "Source Location:", etc.
- * The function uses regular expressions to extract the relevant information and returns an array of findings.
+ * Parses a location string into a structured Location object.
+ * The string can be in formats like "path/to/file.js:10-20", "path/to/file.js:10", or just "path/to/file.js".
  *
- * @param content - The markdown string to parse.
- * @returns An array of structured findings extracted from the markdown.
+ * @param locationStr - The location string to parse.
+ * @returns A Location object with file, startLine, and endLine properties.
  */
 function parseLocation(locationStr: string | null): Location {
   if (!locationStr) {
@@ -114,6 +115,9 @@ function parseLocation(locationStr: string | null): Location {
 export function parseMarkdownToDict(content: string): Finding[] {
   const findings: Finding[] = [];
 
+  // TODO: Implement safeguards such as input length limits and complexity checks on the markdown content before parsing.
+  // Consider using a more robust markdown parser library if performance becomes an issue.
+
   // Remove markdown bullet points (only at line start), markdown emphasis, and preserve hyphens/underscores in text
   const cleanContent = content
     .replace(/^\s*[\*\-]\s*/gm, '') // Remove bullet points at line start
@@ -144,7 +148,7 @@ export function parseMarkdownToDict(content: string): Finding[] {
       lineContent,
       description: extractFromSection(section, "Description"),
       recommendation: extractFromSection(section, "Recommendation")
-    });
+    } as Finding);
   }
 
   return findings;
