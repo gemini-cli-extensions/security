@@ -20,6 +20,7 @@ export interface Finding {
   lineContent: string | null;
   description: string | null;
   recommendation: string | null;
+  codeSuggestion?: string | null;
 }
 
 const FIELD_NAMES = [
@@ -138,6 +139,21 @@ export function parseMarkdownToDict(content: string): Finding[] {
       lineContent = lineContent.replace(/^```[a-z]*\n|```$/gm, '').trim();
     }
 
+    let codeSuggestion: string | null = null;
+    let recommendation = extractFromSection(section, "Recommendation");
+    if (recommendation) {
+      // Extract code blocks from recommendation (```language...code...```)
+      const codeMatch = recommendation.match(/```[^\n`]*\n?([\s\S]*?)```/);
+      codeSuggestion = codeMatch ? codeMatch[1].trim() : null;
+
+      // Remove code blocks from recommendation text
+      if (codeMatch) {
+        recommendation = recommendation.replace(codeMatch[0], '').trim();
+      } else {
+        recommendation = recommendation.replace(/```[a-z]*\n[\s\S]*?```/g, '').trim();
+      }
+    }
+
     findings.push({
       vulnerability: extractFromSection(section, "Vulnerability"),
       vulnerabilityType: extractFromSection(section, "Vulnerability Type"),
@@ -147,7 +163,8 @@ export function parseMarkdownToDict(content: string): Finding[] {
       sinkLocation: parseLocation(rawSink),
       lineContent,
       description: extractFromSection(section, "Description"),
-      recommendation: extractFromSection(section, "Recommendation")
+      recommendation,
+      codeSuggestion
     } as Finding);
   }
 

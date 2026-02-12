@@ -27,12 +27,110 @@ Recommendation: Move the secret to an environment variable.
       vulnerabilityType: 'Security',
       severity: 'Critical',
       lineContent: 'const KEY = "sk_live_12345";',
+      codeSuggestion: null, // Should be null if no code block in recommendation
       sourceLocation: {
         file: 'config/settings.js',
         startLine: 15,
         endLine: 15
       }
     });
+  });
+
+  it('should extract codeSuggestion from recommendation code blocks', () => {
+    const mdContent = `
+Vulnerability: SQL Injection
+Severity: High
+Source Location: db.js:10
+Recommendation: Use parameterized queries.
+\`\`\`javascript
+const row = await db.query('SELECT * FROM users WHERE id = ?', [id]);
+\`\`\`
+    `;
+
+    const results = parseMarkdownToDict(mdContent);
+
+    expect(results).toHaveLength(1);
+    // Verify code block is extracted into codeSuggestion
+    expect(results[0].codeSuggestion).toBe("const row = await db.query('SELECT * FROM users WHERE id = ?', [id]);");
+    // Verify recommendation text is cleaned of the code block
+    expect(results[0].recommendation).toBe("Use parameterized queries.");
+  });
+
+  it('should handle a complex, messy markdown input with multiple findings and irregular formatting', () => {
+    const mdContent = `
+### Finding 1
+**Vulnerability**: Path Traversal
+**Severity**: High
+**Source Location**: \`lib/file-utils.ts:102-105\`
+**Line Content**:
+\`\`\`typescript
+const data = fs.readFileSync(path.join(__dirname, req.query.file));
+\`\`\`
+**Description**: User input is joined directly to a file path.
+**Recommendation**: 
+First, sanitize the input using a whitelist. 
+\`\`\`typescript
+const safePath = path.basename(req.query.file);
+const data = fs.readFileSync(path.join(__dirname, 'safe_dir', safePath));
+\`\`\`
+After that, ensure permissions are restricted.
+
+---
+
+Vulnerability: Unencrypted Communication
+Severity: Medium
+Source Location: src/network.js
+Recommendation: Use HTTPS instead of HTTP.
+    `;
+
+    const results = parseMarkdownToDict(mdContent);
+
+    expect(results).toHaveLength(2);
+
+    // Assertions for the complex first finding
+    expect(results[0]).toMatchObject({
+      vulnerability: 'Path Traversal',
+      severity: 'High',
+      sourceLocation: {
+        file: 'lib/file-utils.ts',
+        startLine: 102,
+        endLine: 105
+      }
+    });
+    
+    // Check that the code suggestion was extracted correctly despite surrounding text
+    expect(results[0].codeSuggestion).toBe('const safePath = path.basename(req.query.file);\nconst data = fs.readFileSync(path.join(__dirname, \'safe_dir\', safePath));');
+    
+    // Check that recommendation text preserved the parts before and after the code block
+    expect(results[0].recommendation).toContain('First, sanitize the input');
+    expect(results[0].recommendation).toContain('After that, ensure permissions are restricted.');
+    expect(results[0].recommendation).not.toContain('```typescript');
+
+    // Assertions for the second, simpler finding in the same batch
+    expect(results[1]).toMatchObject({
+      vulnerability: 'Unencrypted Communication',
+      severity: 'Medium',
+      codeSuggestion: null
+    });
+  });
+
+  it('should handle complex recommendations with text following a code block', () => {
+    const mdContent = `
+Vulnerability: Insecure Regex
+Severity: Low
+Source Location: utils.js:5
+Recommendation: Use a more restrictive regex.
+\`\`\`javascript
+const regex = /^[a-z]+$/;
+\`\`\`
+This will prevent special character injection.
+    `;
+
+    const results = parseMarkdownToDict(mdContent);
+
+    expect(results[0].codeSuggestion).toBe("const regex = /^[a-z]+$/;");
+    expect(results[0].recommendation).toContain("Use a more restrictive regex.");
+    expect(results[0].recommendation).toContain("This will prevent special character injection.");
   });
 
   it('should parse a privacy violation with Sink and Data Type', () => {
