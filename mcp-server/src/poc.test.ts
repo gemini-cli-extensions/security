@@ -11,6 +11,11 @@ describe('runPoc', () => {
   it('should execute the file at the given path', async () => {
     const mockPath = {
       dirname: (p: string) => p.substring(0, p.lastIndexOf('/')),
+      resolve: (p1: string, p2?: string) => {
+        if (p2) return p1 + '/' + p2;
+        return p1;
+      },
+      sep: '/',
     };
     const mockExecAsync = vi.fn(async (cmd: string) => {
       if (cmd.startsWith('npm install')) {
@@ -20,7 +25,7 @@ describe('runPoc', () => {
     });
 
     const result = await runPoc(
-      { filePath: '/tmp/test.js' },
+      { filePath: process.cwd() + '/.gemini_security/poc/test.js' },
       { fs: {} as any, path: mockPath as any, execAsync: mockExecAsync as any }
     );
 
@@ -28,9 +33,9 @@ describe('runPoc', () => {
     expect(mockExecAsync).toHaveBeenNthCalledWith(
       1,
       'npm install --registry=https://registry.npmjs.org/',
-      { cwd: '/tmp' }
+      { cwd: `${process.cwd()}/.gemini_security/poc` }
     );
-    expect(mockExecAsync).toHaveBeenNthCalledWith(2, 'node /tmp/test.js');
+    expect(mockExecAsync).toHaveBeenNthCalledWith(2, `node ${process.cwd()}/.gemini_security/poc/test.js`);
     expect((result.content[0] as any).text).toBe(
       JSON.stringify({ stdout: 'output', stderr: '' })
     );
@@ -39,6 +44,11 @@ describe('runPoc', () => {
   it('should handle execution errors', async () => {
     const mockPath = {
       dirname: (p: string) => p.substring(0, p.lastIndexOf('/')),
+      resolve: (p1: string, p2?: string) => {
+        if (p2) return p1 + '/' + p2;
+        return p1;
+      },
+      sep: '/',
     };
     const mockExecAsync = vi.fn(async (cmd: string) => {
       if (cmd.startsWith('node')) {
@@ -48,7 +58,7 @@ describe('runPoc', () => {
     });
 
     const result = await runPoc(
-      { filePath: '/tmp/error.js' },
+      { filePath: process.cwd() + '/.gemini_security/poc/error.js' },
       { fs: {} as any, path: mockPath as any, execAsync: mockExecAsync as any }
     );
 
@@ -56,5 +66,27 @@ describe('runPoc', () => {
     expect((result.content[0] as any).text).toBe(
       JSON.stringify({ error: 'Execution failed' })
     );
+  });
+
+  it('should fail when accessing file outside of allowed directory', async () => {
+    const mockPath = {
+      dirname: (p: string) => p.substring(0, p.lastIndexOf('/')),
+      resolve: (p1: string, p2?: string) => {
+        if (p2) return p1 + '/' + p2;
+        return p1; // Basic mock resolve
+      },
+      sep: '/',
+    };
+
+    const mockExecAsync = vi.fn();
+
+    const result = await runPoc(
+      { filePath: '/tmp/malicious.js' },
+      { fs: {} as any, path: mockPath as any, execAsync: mockExecAsync as any }
+    );
+
+    expect(result.isError).toBe(true);
+    expect((result.content[0] as any).text).toContain('Security Error: PoC execution is restricted');
+    expect(mockExecAsync).not.toHaveBeenCalled();
   });
 });

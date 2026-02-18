@@ -170,6 +170,8 @@ server.registerPrompt(
           1.  **Generate PoC:**
               *   Create a 'poc' directory in '.gemini_security' if it doesn't exist.
               *   Generate a Node.js script that demonstrates the vulnerability under the '.gemini_security/poc/' directory.
+              *   Based on the vulnerability type certain criteria must be met in our script, otherwise generate the PoC to the best of your ability:
+                  *   If the vulnerability is a Path Traversal, the script should demonstrate the vulnerability by creating a temporary file 'gcli_secext_temp.txt' directly outside of the project directory. The script should then try to read the file using the vulnerable code. **IMPORTANT:** The script MUST clean up (delete) the 'gcli_secext_temp.txt' file after the verification step, regardless of whether the read was successful or not. Wrap file operations in try/finally blocks to ensure cleanup.
               *   The script should import the user's vulnerable file(s), and demonstrate the vulnerability in their code.
 
           2.  **Run PoC:**

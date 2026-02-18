@@ -23,6 +23,24 @@ export async function runPoc(
   try {
     const pocDir = dependencies.path.dirname(filePath);
 
+    // Validate that the filePath is within the safe PoC directory
+    const resolvedFilePath = dependencies.path.resolve(filePath);
+    const safePocDir = dependencies.path.resolve(process.cwd(), '.gemini_security/poc');
+
+    if (!resolvedFilePath.startsWith(safePocDir + dependencies.path.sep)) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: `Security Error: PoC execution is restricted to files within '${safePocDir}'. Attempted to access '${resolvedFilePath}'.`,
+            }),
+          },
+        ],
+        isError: true,
+      };
+    }
+
     try {
       await dependencies.execAsync('npm install --registry=https://registry.npmjs.org/', { cwd: pocDir });
     } catch (error) {
