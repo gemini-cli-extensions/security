@@ -8,15 +8,16 @@ import { describe, it, vi, expect } from 'vitest';
 import { runPoc } from './poc.js';
 
 describe('runPoc', () => {
+  const mockPath = {
+    dirname: (p: string) => p.substring(0, p.lastIndexOf('/')),
+    resolve: (p1: string, p2?: string) => {
+      if (p2) return p1 + '/' + p2;
+      return p1;
+    },
+    sep: '/',
+  };
+
   it('should execute the file at the given path', async () => {
-    const mockPath = {
-      dirname: (p: string) => p.substring(0, p.lastIndexOf('/')),
-      resolve: (p1: string, p2?: string) => {
-        if (p2) return p1 + '/' + p2;
-        return p1;
-      },
-      sep: '/',
-    };
     const mockExecAsync = vi.fn(async (cmd: string) => {
       if (cmd.startsWith('npm install')) {
         return { stdout: '', stderr: '' };
@@ -45,14 +46,6 @@ describe('runPoc', () => {
   });
 
   it('should handle execution errors', async () => {
-    const mockPath = {
-      dirname: (p: string) => p.substring(0, p.lastIndexOf('/')),
-      resolve: (p1: string, p2?: string) => {
-        if (p2) return p1 + '/' + p2;
-        return p1;
-      },
-      sep: '/',
-    };
     const mockExecAsync = vi.fn(async (cmd: string) => {
       return { stdout: '', stderr: '' };
     });
@@ -72,15 +65,6 @@ describe('runPoc', () => {
   });
 
   it('should fail when accessing file outside of allowed directory', async () => {
-    const mockPath = {
-      dirname: (p: string) => p.substring(0, p.lastIndexOf('/')),
-      resolve: (p1: string, p2?: string) => {
-        if (p2) return p1 + '/' + p2;
-        return p1; // Basic mock resolve
-      },
-      sep: '/',
-    };
-
     const mockExecAsync = vi.fn();
     const mockExecFileAsync = vi.fn();
 
