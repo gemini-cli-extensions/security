@@ -7,10 +7,11 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { exec } from 'child_process';
+import { exec, execFile } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export async function runPoc(
   {
@@ -18,12 +19,12 @@ export async function runPoc(
   }: {
       filePath: string;
   },
-  dependencies: { fs: typeof fs; path: typeof path; execAsync: typeof execAsync } = { fs, path, execAsync }
+  dependencies: { fs: typeof fs; path: typeof path; execAsync: typeof execAsync; execFileAsync: typeof execFileAsync } = { fs, path, execAsync, execFileAsync }
 ): Promise<CallToolResult> {
   try {
     const pocDir = dependencies.path.dirname(filePath);
 
-    // Validate that the filePath is within the safe PoC directory
+    // 🛡️ Validate that the filePath is within the safe PoC directory
     const resolvedFilePath = dependencies.path.resolve(filePath);
     const safePocDir = dependencies.path.resolve(process.cwd(), '.gemini_security/poc');
 
@@ -44,10 +45,10 @@ export async function runPoc(
     try {
       await dependencies.execAsync('npm install --registry=https://registry.npmjs.org/', { cwd: pocDir });
     } catch (error) {
-      // Ignore errors from npm install, as it might fail if no package.json exists,
+      // 📦 Ignore errors from npm install, as it might fail if no package.json exists,
       // but we still want to attempt running the PoC.
     }
-    const { stdout, stderr } = await dependencies.execAsync(`node ${filePath}`);
+    const { stdout, stderr } = await dependencies.execFileAsync('node', [filePath]);
 
     return {
       content: [
