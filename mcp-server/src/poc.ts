@@ -9,6 +9,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { exec, execFile } from 'child_process';
 import { promisify } from 'util';
+import { POC_DIR } from './constants.js';
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
@@ -26,7 +27,7 @@ export async function runPoc(
 
     // 🛡️ Validate that the filePath is within the safe PoC directory
     const resolvedFilePath = dependencies.path.resolve(filePath);
-    const safePocDir = dependencies.path.resolve(process.cwd(), '.gemini_security/poc');
+    const safePocDir = dependencies.path.resolve(process.cwd(), POC_DIR);
 
     if (!resolvedFilePath.startsWith(safePocDir + dependencies.path.sep)) {
       return {
