@@ -23,7 +23,48 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-// ... (omitted lines)
+server.tool(
+  'find_line_numbers',
+  'Finds the line numbers of a code snippet in a file.',
+  {
+    filePath: z
+      .string()
+      .describe('The path to the file to with the security vulnerability.'),
+    snippet: z
+      .string()
+      .describe('The code snippet to search for inside the file.'),
+  } as any,
+  (input: { filePath: string; snippet: string }) => findLineNumbers(input, { fs, path })
+);
+
+server.tool(
+  'get_audit_scope',
+  'Gets the git diff of the current changes. Can optionally compare two specific branches.',
+  {
+    base: z.string().optional().describe('The base branch or commit hash (e.g., "main").'),
+    head: z.string().optional().describe('The head branch or commit hash (e.g., "feature-branch").'),
+  } as any,
+  ((args: { base?: string; head?: string }) => {
+    const diff = getAuditScope(args.base, args.head);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: diff,
+        },
+      ],
+    };
+  }) as any
+);
+
+server.tool(
+  'run_poc',
+  'Runs the generated PoC code.',
+  {
+    filePath: z.string().describe('The absolute path to the PoC file to run.'),
+  } as any,
+  (input: { filePath: string }) => runPoc(input)
+);
 
 server.tool(
   'convert_report_to_json',
