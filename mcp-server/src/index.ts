@@ -14,6 +14,7 @@ import path from 'path';
 import { getAuditScope } from './filesystem.js';
 import { findLineNumbers } from './security.js';
 import { parseMarkdownToDict } from './parser.js';
+import { SECURITY_DIR_NAME, POC_DIR_NAME } from './constants.js';
 
 import { runPoc } from './poc.js';
 
@@ -67,12 +68,12 @@ server.tool(
 
 server.tool(
   'convert_report_to_json',
-  'Converts the Markdown security report into a JSON file named security_report.json in the .gemini_security folder.',
+  `Converts the Markdown security report into a JSON file named security_report.json in the ${SECURITY_DIR_NAME} folder.`,
   {} as any,
   (async () => {
     try {
-      const reportPath = path.join(process.cwd(), '.gemini_security/DRAFT_SECURITY_REPORT.md');
-      const outputPath = path.join(process.cwd(), '.gemini_security/security_report.json');
+      const reportPath = path.join(process.cwd(), `${SECURITY_DIR_NAME}/DRAFT_SECURITY_REPORT.md`);
+      const outputPath = path.join(process.cwd(), `${SECURITY_DIR_NAME}/security_report.json`);
       
       const content = await fs.readFile(reportPath, 'utf-8');
       const results = parseMarkdownToDict(content);
@@ -113,13 +114,13 @@ server.registerPrompt(
         role: 'user' as const,
         content: {
           type: 'text' as const,
-          text: `You are a helpful assistant that helps users maintain notes. Your task is to add a new entry to the notes file at '.gemini_security/${notePath}'.
+          text: `You are a helpful assistant that helps users maintain notes. Your task is to add a new entry to the notes file at '${SECURITY_DIR_NAME}/${notePath}'.
 
         You MUST use the 'ReadFile' and 'WriteFile' tools.
 
         **Workflow:**
 
-        1.  **Read the file:** First, you MUST attempt to read the file at '.gemini_security/${notePath}' using the 'ReadFile' tool.
+        1.  **Read the file:** First, you MUST attempt to read the file at '${SECURITY_DIR_NAME}/${notePath}' using the 'ReadFile' tool.
 
         2.  **Handle the result:**
             *   **If the file exists:**
@@ -129,7 +130,7 @@ server.registerPrompt(
                 *   Once you have a consistent entry, append it to the content, ensuring it perfectly matches the existing format.
                 *   Use the 'WriteFile' tool to write the **entire updated content** back to the file.
             *   **If the file does NOT exist (ReadFile returns an error):**
-                *   First, if the '.gemini_security' directory doesn't exist, create it. 
+                *   First, if the '${SECURITY_DIR_NAME}' directory doesn't exist, create it. 
                 *   This is a new note. You MUST ask the user to define a template for this note.
                 *   Once the user provides a template, construct the initial file content. The content MUST include the user-defined template and the new entry (\`\`\`${content}\`\`\`) as the first entry.
                 *   Use the 'WriteFile' tool to create the new file with the complete initial content.
@@ -168,8 +169,13 @@ server.registerPrompt(
           **Workflow:**
 
           1.  **Generate PoC:**
-              *   Create a 'poc' directory in '.gemini_security' if it doesn't exist.
-              *   Generate a Node.js script that demonstrates the vulnerability under the '.gemini_security/poc/' directory.
+              *   Create a '${POC_DIR_NAME}' directory in '${SECURITY_DIR_NAME}' if it doesn't exist.
+              *   Generate a Node.js script that demonstrates the vulnerability under the '${SECURITY_DIR_NAME}/${POC_DIR_NAME}/' directory.
+              *   Based on the vulnerability type certain criteria must be met in our script, otherwise generate the PoC to the best of your ability:
+                  *   If the vulnerability is a Path Traversal Vulnerability:
+                      *   **YOU MUST** Use the 'write_file' tool to create a temporary file '../gcli_secext_temp.txt' directly outside of the project directory. 
+                      *   The script should then try to read the file using the vulnerability in the user's code. 
+                      *   **YOU MUST** Use the 'write_file' tool to delete the '../gcli_secext_temp.txt' file after the verification step, regardless of whether the read was successful or not.
               *   The script should import the user's vulnerable file(s), and demonstrate the vulnerability in their code.
 
           2.  **Run PoC:**
