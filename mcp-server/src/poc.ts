@@ -50,12 +50,56 @@ export async function runPoc(
     let runArgs: string[];
 
     if (ext === '.py') {
-      runCmd = 'python3';
+      const venvDir = dependencies.path.join(pocDir, '.venv');
+      const isWindows = process.platform === 'win32';
+      const pythonBin = isWindows
+        ? dependencies.path.join(venvDir, 'Scripts', 'python.exe')
+        : dependencies.path.join(venvDir, 'bin', 'python');
+
+      try {
+        await dependencies.fs.access(pythonBin);
+      } catch {
+        try {
+          await dependencies.execAsync(`python3 -m venv "${venvDir}"`);
+        } catch {
+          await dependencies.execAsync(`python -m venv "${venvDir}"`);
+        }
+      }
+
+      runCmd = pythonBin;
       runArgs = [filePath];
-      installCmd = 'pip3 install -r requirements.txt';
+
+      const projectRoot = process.cwd();
+      const checkExists = async (p: string) =>
+        dependencies.fs.access(p).then(() => true).catch(() => false);
+
+      const hasProjectPyproject = await checkExists(dependencies.path.join(projectRoot, 'pyproject.toml'));
+      const hasProjectRequirements = await checkExists(dependencies.path.join(projectRoot, 'requirements.txt'));
+
+      if (hasProjectPyproject) {
+        await dependencies.execAsync(`"${pythonBin}" -m pip install -e "${projectRoot}"`).catch(() => { });
+      } else if (hasProjectRequirements) {
+        await dependencies.execAsync(`"${pythonBin}" -m pip install -r "${dependencies.path.join(projectRoot, 'requirements.txt')}"`).catch(() => { });
+      }
+
+      const hasPocPyproject = await checkExists(dependencies.path.join(pocDir, 'pyproject.toml'));
+      const hasPocRequirements = await checkExists(dependencies.path.join(pocDir, 'requirements.txt'));
+
+      if (hasPocPyproject) {
+        await dependencies.execAsync(`"${pythonBin}" -m pip install .`, { cwd: pocDir }).catch(() => { });
+      }
+      if (hasPocRequirements) {
+        await dependencies.execAsync(`"${pythonBin}" -m pip install -r requirements.txt`, { cwd: pocDir }).catch(() => { });
+      }
     } else if (ext === '.go') {
       runCmd = 'go';
       runArgs = ['run', filePath];
+
+      const hasGoMod = await dependencies.fs.access(dependencies.path.join(pocDir, 'go.mod')).then(() => true).catch(() => false);
+      if (!hasGoMod) {
+        await dependencies.execAsync('go mod init poc', { cwd: pocDir }).catch(() => { });
+      }
+
       installCmd = 'go mod tidy';
     } else {
       runCmd = 'node';

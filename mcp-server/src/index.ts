@@ -171,6 +171,10 @@ server.registerPrompt(
           1.  **Generate PoC:**
               *   Create a '${POC_DIR_NAME}' directory in '${SECURITY_DIR_NAME}' if it doesn't exist.
               *   Based on the user's project language, generate a script for Python/Go/Node that demonstrates the vulnerability under the '${SECURITY_DIR_NAME}/${POC_DIR_NAME}/' directory.
+              *   **CRITICAL:** If the PoC script requires external dependencies (e.g. npm packages, PyPI packages) that are not already in the user's project:
+                  *   For Node.js: Generate a \`package.json\` in the '${POC_DIR_NAME}' directory.
+                  *   For Python: Generate a \`requirements.txt\` in the '${POC_DIR_NAME}' directory.
+                  *   For Go: The execution engine will automatically run \`go mod init poc\` and \`go mod tidy\`.
               *   Based on the vulnerability type certain criteria must be met in our script, otherwise generate the PoC to the best of your ability:
                   *   If the vulnerability is a Path Traversal Vulnerability:
                       *   **YOU MUST** Use the 'write_file' tool to create a temporary file '../gcli_secext_temp.txt' directly outside of the project directory. 
