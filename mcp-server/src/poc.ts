@@ -67,7 +67,7 @@ export async function runPoc(
       try {
         await dependencies.execAsync(installCmd, { cwd: pocDir });
       } catch (error) {
-        // Ignore errors from install step, as it might fail if no config file exists,
+        // Ignore errors from install step, as it might fail if no dependency configuration file (e.g., package.json, requirements.txt, go.mod) exists,
         // but we still want to attempt running the PoC.
       }
     }
