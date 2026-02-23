@@ -25,7 +25,7 @@ export async function runPoc(
   try {
     const pocDir = dependencies.path.dirname(filePath);
 
-    // Validate that the filePath is within the safe PoC directory
+// 🛡️ Validate that the filePath is within the safe PoC directory
     const resolvedFilePath = dependencies.path.resolve(filePath);
     const safePocDir = dependencies.path.resolve(process.cwd(), POC_DIR);
 
