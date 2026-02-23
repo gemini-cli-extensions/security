@@ -25,7 +25,7 @@ export async function runPoc(
   try {
     const pocDir = dependencies.path.dirname(filePath);
 
-    // 🛡️ Validate that the filePath is within the safe PoC directory
+    // Validate that the filePath is within the safe PoC directory
     const resolvedFilePath = dependencies.path.resolve(filePath);
     const safePocDir = dependencies.path.resolve(process.cwd(), POC_DIR);
 
@@ -43,13 +43,36 @@ export async function runPoc(
       };
     }
 
-    try {
-      await dependencies.execAsync('npm install --registry=https://registry.npmjs.org/', { cwd: pocDir });
-    } catch (error) {
-      // 📦 Ignore errors from npm install, as it might fail if no package.json exists,
-      // but we still want to attempt running the PoC.
+    const ext = dependencies.path.extname(filePath).toLowerCase();
+
+    let installCmd: string | null = null;
+    let runCmd: string;
+    let runArgs: string[];
+
+    if (ext === '.py') {
+      runCmd = 'python3';
+      runArgs = [filePath];
+      installCmd = 'pip3 install -r requirements.txt';
+    } else if (ext === '.go') {
+      runCmd = 'go';
+      runArgs = ['run', filePath];
+      installCmd = 'go mod tidy';
+    } else {
+      runCmd = 'node';
+      runArgs = [filePath];
+      installCmd = 'npm install --registry=https://registry.npmjs.org/';
     }
-    const { stdout, stderr } = await dependencies.execFileAsync('node', [filePath]);
+
+    if (installCmd) {
+      try {
+        await dependencies.execAsync(installCmd, { cwd: pocDir });
+      } catch (error) {
+        // Ignore errors from install step, as it might fail if no config file exists,
+        // but we still want to attempt running the PoC.
+      }
+    }
+
+    const { stdout, stderr } = await dependencies.execFileAsync(runCmd, runArgs);
 
     return {
       content: [

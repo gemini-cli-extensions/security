@@ -16,19 +16,16 @@ describe('runPoc', () => {
       if (p2) return p1 + '/' + p2;
       return p1;
     },
+    extname: (p: string) => {
+      const idx = p.lastIndexOf('.');
+      return idx !== -1 ? p.substring(idx) : '';
+    },
     sep: '/',
   };
 
-  it('should execute the file at the given path', async () => {
-    const mockExecAsync = vi.fn(async (cmd: string) => {
-      if (cmd.startsWith('npm install')) {
-        return { stdout: '', stderr: '' };
-      }
-      return { stdout: 'output', stderr: '' };
-    });
-    const mockExecFileAsync = vi.fn(async (file: string, args?: string[]) => {
-      return { stdout: 'output', stderr: '' };
-    });
+  it('should execute a Node.js file', async () => {
+    const mockExecAsync = vi.fn(async () => { return { stdout: '', stderr: '' }; });
+    const mockExecFileAsync = vi.fn(async () => { return { stdout: 'output', stderr: '' }; });
 
     const result = await runPoc(
       { filePath: `${POC_DIR}/test.js` },
@@ -36,15 +33,42 @@ describe('runPoc', () => {
     );
 
     expect(mockExecAsync).toHaveBeenCalledTimes(1);
-    expect(mockExecAsync).toHaveBeenCalledWith(
-      'npm install --registry=https://registry.npmjs.org/',
-      { cwd: POC_DIR }
-    );
+    expect(mockExecAsync).toHaveBeenCalledWith('npm install --registry=https://registry.npmjs.org/', { cwd: POC_DIR });
     expect(mockExecFileAsync).toHaveBeenCalledTimes(1);
     expect(mockExecFileAsync).toHaveBeenCalledWith('node', [`${POC_DIR}/test.js`]);
-    expect((result.content[0] as any).text).toBe(
-      JSON.stringify({ stdout: 'output', stderr: '' })
+    expect((result.content[0] as any).text).toBe(JSON.stringify({ stdout: 'output', stderr: '' }));
+  });
+
+  it('should execute a Python file', async () => {
+    const mockExecAsync = vi.fn(async () => { return { stdout: '', stderr: '' }; });
+    const mockExecFileAsync = vi.fn(async () => { return { stdout: 'output', stderr: '' }; });
+
+    const result = await runPoc(
+      { filePath: `${POC_DIR}/test.py` },
+      { fs: {} as any, path: mockPath as any, execAsync: mockExecAsync as any, execFileAsync: mockExecFileAsync as any }
     );
+
+    expect(mockExecAsync).toHaveBeenCalledTimes(1);
+    expect(mockExecAsync).toHaveBeenCalledWith('pip3 install -r requirements.txt', { cwd: POC_DIR });
+    expect(mockExecFileAsync).toHaveBeenCalledTimes(1);
+    expect(mockExecFileAsync).toHaveBeenCalledWith('python3', [`${POC_DIR}/test.py`]);
+    expect((result.content[0] as any).text).toBe(JSON.stringify({ stdout: 'output', stderr: '' }));
+  });
+
+  it('should execute a Go file', async () => {
+    const mockExecAsync = vi.fn(async () => { return { stdout: '', stderr: '' }; });
+    const mockExecFileAsync = vi.fn(async () => { return { stdout: 'output', stderr: '' }; });
+
+    const result = await runPoc(
+      { filePath: `${POC_DIR}/test.go` },
+      { fs: {} as any, path: mockPath as any, execAsync: mockExecAsync as any, execFileAsync: mockExecFileAsync as any }
+    );
+
+    expect(mockExecAsync).toHaveBeenCalledTimes(1);
+    expect(mockExecAsync).toHaveBeenCalledWith('go mod tidy', { cwd: POC_DIR });
+    expect(mockExecFileAsync).toHaveBeenCalledTimes(1);
+    expect(mockExecFileAsync).toHaveBeenCalledWith('go', ['run', `${POC_DIR}/test.go`]);
+    expect((result.content[0] as any).text).toBe(JSON.stringify({ stdout: 'output', stderr: '' }));
   });
 
   it('should handle execution errors', async () => {
