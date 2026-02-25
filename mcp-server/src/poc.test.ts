@@ -16,35 +16,60 @@ describe('runPoc', () => {
       if (p2) return p1 + '/' + p2;
       return p1;
     },
+    join: (...paths: string[]) => paths.join('/'),
+    extname: (p: string) => {
+      const idx = p.lastIndexOf('.');
+      return idx !== -1 ? p.substring(idx) : '';
+    },
     sep: '/',
   };
 
-  it('should execute the file at the given path', async () => {
-    const mockExecAsync = vi.fn(async (cmd: string) => {
-      if (cmd.startsWith('npm install')) {
-        return { stdout: '', stderr: '' };
-      }
-      return { stdout: 'output', stderr: '' };
-    });
-    const mockExecFileAsync = vi.fn(async (file: string, args?: string[]) => {
-      return { stdout: 'output', stderr: '' };
-    });
+  it('should execute a Node.js file', async () => {
+    const mockExecAsync = vi.fn(async () => { return { stdout: '', stderr: '' }; });
+    const mockExecFileAsync = vi.fn(async () => { return { stdout: 'output', stderr: '' }; });
 
     const result = await runPoc(
       { filePath: `${POC_DIR}/test.js` },
-      { fs: {} as any, path: mockPath as any, execAsync: mockExecAsync as any, execFileAsync: mockExecFileAsync as any }
+      { fs: { access: vi.fn().mockRejectedValue(new Error()) } as any, path: mockPath as any, execAsync: mockExecAsync as any, execFileAsync: mockExecFileAsync as any }
     );
 
     expect(mockExecAsync).toHaveBeenCalledTimes(1);
-    expect(mockExecAsync).toHaveBeenCalledWith(
-      'npm install --registry=https://registry.npmjs.org/',
-      { cwd: POC_DIR }
-    );
+    expect(mockExecAsync).toHaveBeenCalledWith('npm install --registry=https://registry.npmjs.org/', { cwd: POC_DIR });
     expect(mockExecFileAsync).toHaveBeenCalledTimes(1);
     expect(mockExecFileAsync).toHaveBeenCalledWith('node', [`${POC_DIR}/test.js`]);
-    expect((result.content[0] as any).text).toBe(
-      JSON.stringify({ stdout: 'output', stderr: '' })
+    expect((result.content[0] as any).text).toBe(JSON.stringify({ stdout: 'output', stderr: '' }));
+  });
+
+  it('should execute a Python file', async () => {
+    const mockExecAsync = vi.fn(async () => { return { stdout: '', stderr: '' }; });
+    const mockExecFileAsync = vi.fn(async () => { return { stdout: 'output', stderr: '' }; });
+
+    const result = await runPoc(
+      { filePath: `${POC_DIR}/test.py` },
+      { fs: { access: vi.fn().mockRejectedValue(new Error()) } as any, path: mockPath as any, execAsync: mockExecAsync as any, execFileAsync: mockExecFileAsync as any }
     );
+
+    expect(mockExecAsync).toHaveBeenCalledWith(expect.stringContaining('python3 -m venv'));
+    expect(mockExecFileAsync).toHaveBeenCalledTimes(1);
+    expect(mockExecFileAsync).toHaveBeenCalledWith(expect.stringContaining('python'), [`${POC_DIR}/test.py`]);
+    expect((result.content[0] as any).text).toBe(JSON.stringify({ stdout: 'output', stderr: '' }));
+  });
+
+  it('should execute a Go file', async () => {
+    const mockExecAsync = vi.fn(async () => { return { stdout: '', stderr: '' }; });
+    const mockExecFileAsync = vi.fn(async () => { return { stdout: 'output', stderr: '' }; });
+
+    const result = await runPoc(
+      { filePath: `${POC_DIR}/test.go` },
+      { fs: { access: vi.fn().mockRejectedValue(new Error()) } as any, path: mockPath as any, execAsync: mockExecAsync as any, execFileAsync: mockExecFileAsync as any }
+    );
+
+    expect(mockExecAsync).toHaveBeenCalledTimes(2);
+    expect(mockExecAsync).toHaveBeenNthCalledWith(1, 'go mod init poc', { cwd: POC_DIR });
+    expect(mockExecAsync).toHaveBeenNthCalledWith(2, 'go mod tidy', { cwd: POC_DIR });
+    expect(mockExecFileAsync).toHaveBeenCalledTimes(1);
+    expect(mockExecFileAsync).toHaveBeenCalledWith('go', ['run', `${POC_DIR}/test.go`]);
+    expect((result.content[0] as any).text).toBe(JSON.stringify({ stdout: 'output', stderr: '' }));
   });
 
   it('should handle execution errors', async () => {
