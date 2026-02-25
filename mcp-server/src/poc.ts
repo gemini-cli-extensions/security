@@ -116,7 +116,38 @@ export async function runPoc(
       }
     }
 
-    const { stdout, stderr } = await dependencies.execFileAsync(runCmd, runArgs);
+    let output: { stdout: string; stderr: string };
+
+    try {
+      output = await dependencies.execFileAsync(runCmd, runArgs);
+    } catch (error: any) {
+      const errorMessage = error.message || '';
+      const errorOutput = (error.stdout || '') + (error.stderr || '');
+
+      // If we are running a Python script in a venv and it fails due to missing modules,
+      // try enabling system site packages for the venv and retry.
+      if (ext === '.py' && (errorMessage.includes('ModuleNotFoundError') || errorOutput.includes('ModuleNotFoundError'))) {
+        try {
+          const venvDir = dependencies.path.join(pocDir, '.venv');
+          // Update the venv to include system site packages
+          try {
+            await dependencies.execAsync(`python3 -m venv --system-site-packages "${venvDir}"`);
+          } catch {
+            await dependencies.execAsync(`python -m venv --system-site-packages "${venvDir}"`);
+          }
+
+          // Retry execution with the updated venv
+          output = await dependencies.execFileAsync(runCmd, runArgs);
+        } catch (retryError: any) {
+          // If retry fails, throw the original error (or the retry error if it's new/different)
+          throw retryError;
+        }
+      } else {
+        throw error;
+      }
+    }
+
+    const { stdout, stderr } = output;
 
     return {
       content: [
@@ -128,14 +159,21 @@ export async function runPoc(
     };
   } catch (error) {
     let errorMessage = 'An unknown error occurred.';
+    let stdout = '';
+    let stderr = '';
+
     if (error instanceof Error) {
       errorMessage = error.message;
+      // Capture stdout/stderr from the error object if available (execFile throws with these)
+      stdout = (error as any).stdout || '';
+      stderr = (error as any).stderr || '';
     }
+
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify({ error: errorMessage }),
+          text: JSON.stringify({ error: errorMessage, stdout, stderr }),
         },
       ],
       isError: true,
