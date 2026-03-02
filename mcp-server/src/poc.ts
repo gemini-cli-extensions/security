@@ -9,7 +9,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { exec, execFile } from 'child_process';
 import { promisify } from 'util';
-import { POC_DIR } from './constants.js';
+import { POC_DIR, PATH_TRAVERSAL_TEMP_FILE } from './constants.js';
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
@@ -178,5 +178,14 @@ export async function runPoc(
       ],
       isError: true,
     };
+  } finally {
+    // Cleanup path traversal temp file if it exists
+    const tempFilePath = dependencies.path.join(process.cwd(), PATH_TRAVERSAL_TEMP_FILE);
+    try {
+      await dependencies.fs.access(tempFilePath);
+      await dependencies.fs.unlink(tempFilePath);
+    } catch {
+      // Ignore if file doesn't exist or can't be deleted
+    }
   }
 }

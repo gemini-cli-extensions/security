@@ -5,8 +5,9 @@
  */
 
 import { describe, it, vi, expect } from 'vitest';
+import { promises as fs, PathLike } from 'fs';
 import { runPoc } from './poc.js';
-import { POC_DIR } from './constants.js';
+import { POC_DIR, PATH_TRAVERSAL_TEMP_FILE } from './constants.js';
 
 describe('runPoc', () => {
   const mockPath = {
@@ -87,7 +88,7 @@ describe('runPoc', () => {
 
     expect(result.isError).toBe(true);
     expect((result.content[0] as any).text).toBe(
-      JSON.stringify({ error: 'Execution failed' })
+      JSON.stringify({ error: 'Execution failed', stdout: '', stderr: '' })
     );
   });
 
@@ -104,5 +105,39 @@ describe('runPoc', () => {
     expect((result.content[0] as any).text).toContain('Security Error: PoC execution is restricted');
     expect(mockExecAsync).not.toHaveBeenCalled();
     expect(mockExecFileAsync).not.toHaveBeenCalled();
+  });
+
+  it('should cleanup path traversal temp file if it exists', async () => {
+    const mockExecAsync = vi.fn(async () => { return { stdout: '', stderr: '' }; });
+    const mockExecFileAsync = vi.fn(async () => { return { stdout: 'output', stderr: '' }; });
+    const mockAccess = vi.fn();
+    const mockUnlink = vi.fn();
+
+
+    // Mock fs.access to succeed only when checking for the temp file
+    // The runPoc function might check other files based on language (e.g. package.json),
+    // but for this test, we only care that it finds and deletes the temp file in the finally block.
+    mockAccess.mockImplementation(async (path: PathLike) => {
+      if (typeof path === 'string' && path.includes(PATH_TRAVERSAL_TEMP_FILE)) {
+        return undefined; // accessible
+      }
+      throw new Error('File not found');
+    });
+
+    await runPoc(
+      { filePath: `${POC_DIR}/test.js` },
+      {
+        fs: {
+          access: mockAccess,
+          unlink: mockUnlink
+        } as any,
+        path: mockPath as any,
+        execAsync: mockExecAsync as any,
+        execFileAsync: mockExecFileAsync as any
+      }
+    );
+
+    // Verify unlink was called for the temp file
+    expect(mockUnlink).toHaveBeenCalledWith(expect.stringContaining(PATH_TRAVERSAL_TEMP_FILE));
   });
 });
