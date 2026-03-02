@@ -148,7 +148,7 @@ server.registerPrompt(
 server.registerTool(
   'security:setup_poc',
   {
-    description: 'Sets up the necessary workspace, directories, and dependencies to test a vulnerability. You MUST call this tool BEFORE attempting to write any PoC code. This tool will execute the setup and return the exact instructions, context, and directory paths you need to actually generate the PoC script.',
+    description: 'Sets up the necessary workspace, directories, and dependencies to test a vulnerability. You MUST call this tool BEFORE attempting to write any PoC code. This tool will execute the setup and return the exact instructions, context, and directory paths you need to actually generate the PoC script. If multiple vulnerabilities are present, ask the user which one to test.',
     inputSchema: z.object({
       problemStatement: z.string().describe(
         'The raw description of the security problem or vulnerability provided by the user.'
