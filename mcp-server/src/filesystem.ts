@@ -5,6 +5,8 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 /**
  * Checks if the current directory is a GitHub repository.
@@ -57,4 +59,29 @@ export function getAuditScope(base?: string, head?: string): string {
     } catch (_error) {
         return "";
     }
+}
+
+/**
+ * Detects the primary programming language of the project in the current working directory.
+ * @returns 'Node.js', 'Python', 'Go', or 'Unknown'.
+ */
+export async function detectProjectLanguage(): Promise<'Node.js' | 'Python' | 'Go' | 'Unknown'> {
+  const cwd = process.cwd();
+  try {
+    const files = await fs.readdir(cwd);
+
+    if (files.includes('package.json')) return 'Node.js';
+    if (files.includes('go.mod')) return 'Go';
+    if (files.includes('requirements.txt') || files.includes('pyproject.toml')) return 'Python';
+
+    // Fallback: check extensions
+    const extensions = new Set(files.map(f => path.extname(f).toLowerCase()));
+    if (extensions.has('.js') || extensions.has('.ts')) return 'Node.js';
+    if (extensions.has('.py')) return 'Python';
+    if (extensions.has('.go')) return 'Go';
+
+    return 'Unknown';
+  } catch {
+    return 'Unknown';
+  }
 }
