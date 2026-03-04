@@ -249,10 +249,23 @@ server.registerTool(
           text: `You are a security expert. Your task is to generate a Proof-of-Concept (PoC) for a vulnerability for ${language} projects.
 
 **Context Provided:**
-* Problem Statement: ${problemStatement}
-* Source Code Location: ${sourceCodeLocation}
-* Vulnerability Type: ${vulnerabilityType}
-* Detected Language: ${language}
+* Problem Statement:
+\`\`\`
+${problemStatement}
+\`\`\`
+* Source Code Location:
+\`\`\`
+${sourceCodeLocation}
+\`\`\`
+* Vulnerability Type:
+\`\`\`
+${vulnerabilityType}
+\`\`\`
+* Detected Language:
+\`\`\`
+${language}
+\`\`\`
+
 
 **Your Next Steps:**
 
