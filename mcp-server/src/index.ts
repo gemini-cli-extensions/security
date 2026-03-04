@@ -10,11 +10,13 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { promises as fs } from 'fs';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import path from 'path';
-import { getAuditScope } from './filesystem.js';
+import { getAuditScope, detectProjectLanguage } from './filesystem.js';
 import { findLineNumbers } from './security.js';
 import { parseMarkdownToDict } from './parser.js';
-import { SECURITY_DIR_NAME, POC_DIR_NAME } from './constants.js';
+import { SECURITY_DIR_NAME, POC_DIR_NAME, PATH_TRAVERSAL_TEMP_FILE } from './constants.js';
 
 import { runPoc } from './poc.js';
 
@@ -143,54 +145,145 @@ server.registerPrompt(
   },
 );
 
-server.registerPrompt(
-  'security:poc',
+server.registerTool(
+  'security:setup_poc',
   {
-    title: 'PoC Generator',
-    description: '[Experimental] Generates a Proof-of-Concept (PoC) for a given vulnerability.',
-    argsSchema: {
-      problemStatement: z.string().optional().describe('A description of the security problem or vulnerability.'),
-      sourceCodeLocation: z.string().optional().describe('The location of the source code that contains the vulnerability.'),
-    } as any,
+    description: 'Sets up the necessary workspace, directories, and dependencies to test a vulnerability. You MUST call this tool BEFORE attempting to write any PoC code. This tool will execute the setup and return the exact instructions, context, and directory paths you need to actually generate the PoC script. If multiple vulnerabilities are present, ask the user which one to test.',
+    inputSchema: z.object({
+      problemStatement: z.string().describe(
+        'The raw description of the security problem or vulnerability provided by the user.'
+      ),
+
+      vulnerabilityType: z.enum(['path_traversal', 'other']).describe(
+        'You must infer this from the problemStatement if not provided. If the problem involves reading/writing files outside intended directories, select "path_traversal". Otherwise, select "other".'
+      ),
+
+      sourceCodeLocation: z.string().describe(
+        'The exact file path and function/line number of the vulnerable code. You must extract this from the problemStatement. If the problemStatement does not contain the exact file path, you MUST use your search tools to find the vulnerable file in the codebase BEFORE calling this tool.'
+      ),
+    }) as any,
   },
-  (args: any) => {
-    const { problemStatement, sourceCodeLocation } = args;
+  async (args: { problemStatement: string; vulnerabilityType: string; sourceCodeLocation: string }) => {
+    const { problemStatement, vulnerabilityType, sourceCodeLocation } = args;
+
+    const language = await detectProjectLanguage();
+    const pocDir = path.join(process.cwd(), SECURITY_DIR_NAME, POC_DIR_NAME);
+
+    // Ensure PoC directory exists
+    await fs.mkdir(pocDir, { recursive: true });
+
+
+    const execAsync = promisify(exec);
+
+    // Ensure dependency files exist and environment is setup based on language
+    if (language === 'Node.js') {
+      const packageJsonPath = path.join(pocDir, 'package.json');
+      try {
+        await fs.access(packageJsonPath);
+      } catch {
+        try {
+          // Initialize package.json with defaults
+          await execAsync('npm init -y', { cwd: pocDir });
+        } catch {
+          // Fallback to basic JSON if npm init fails
+          await fs.writeFile(packageJsonPath, JSON.stringify({}, null, 2));
+        }
+      }
+    } else if (language === 'Python') {
+      const requirementsTxtPath = path.join(pocDir, 'requirements.txt');
+      try {
+        await fs.access(requirementsTxtPath);
+      } catch {
+        await fs.writeFile(requirementsTxtPath, '');
+      }
+
+      // Create venv if it doesn't exist
+      const venvDir = path.join(pocDir, '.venv');
+      try {
+        await fs.access(venvDir);
+      } catch {
+        try {
+          await execAsync('python3 -m venv .venv', { cwd: pocDir });
+        } catch {
+          try {
+            await execAsync('python -m venv .venv', { cwd: pocDir });
+          } catch {
+            // Ignore if python is not installed or venv fails
+          }
+        }
+      }
+    } else if (language === 'Go') {
+      // Initialize Go module if not exists
+      const goModPath = path.join(pocDir, 'go.mod');
+      try {
+        await fs.access(goModPath);
+      } catch {
+        try {
+          await execAsync('go mod init poc', { cwd: pocDir });
+        } catch {
+          // Ignore error if go is not installed or init fails
+        }
+      }
+    }
+
+    let extraInstructions = '';
+    if (vulnerabilityType === 'path_traversal') {
+      // Create a temp file in the workspace root for traversal test
+      const tempFilePath = path.join(process.cwd(), PATH_TRAVERSAL_TEMP_FILE);
+      await fs.writeFile(tempFilePath, 'This is a path traversal test file to verify the vulnerability.');
+      extraInstructions = `
+        *   **Path Traversal Verification:**
+            *   I have created a temporary file at '${tempFilePath}' for you to use as a target.
+            *   Your PoC script (running inside '${pocDir}') should attempt to read this file using the vulnerability.
+            *   Construct the path to this file relative to the PoC directory (e.g., attempt to traverse up to the workspace root).
+            *   You DO NOT need to create or delete this file; I have handled that.
+      `;
+    }
+
+  // Returns standard MCP tool content array
     return {
-      messages: [
+      content: [
         {
-          role: 'user' as const,
-          content: {
-            type: 'text' as const,
-            text: `You are a security expert. Your task is to generate a Proof-of-Concept (PoC) for a vulnerability for Node.js, Python or Go projects. If the project is not for one of these languages, let the user know that you cannot generate a PoC for this project type.
+          type: 'text' as const,
+          // Rephrased slightly to act as an immediate command directive for the LLM
+          text: `You are a security expert. Your task is to generate a Proof-of-Concept (PoC) for a vulnerability for ${language} projects.
 
-          Problem Statement: ${problemStatement || 'No problem statement provided, if you need more information to generate a PoC, ask the user.'}
-          Source Code Location: ${sourceCodeLocation || 'No source code location provided, try to derive it from the Problem Statement. If you cannot derive it, ask the user for the source code location.'}
-      
-          **Workflow:**
+**Context Provided:**
+* Problem Statement:
+\`\`\`
+${problemStatement}
+\`\`\`
+* Source Code Location:
+\`\`\`
+${sourceCodeLocation}
+\`\`\`
+* Vulnerability Type:
+\`\`\`
+${vulnerabilityType}
+\`\`\`
+* Detected Language:
+\`\`\`
+${language}
+\`\`\`
 
-          1.  **Generate PoC:**
-              *   Create a '${POC_DIR_NAME}' directory in '${SECURITY_DIR_NAME}' if it doesn't exist.
-              *   Based on the user's project language, generate a script for Python/Go/Node that demonstrates the vulnerability under the '${SECURITY_DIR_NAME}/${POC_DIR_NAME}/' directory.
-              *   **CRITICAL:** If the PoC script requires external dependencies (e.g. npm packages, PyPI packages) that are not already in the user's project:
-                  *   For Node.js: Generate a \`package.json\` in the '${POC_DIR_NAME}' directory.
-                  *   For Python: Generate a \`requirements.txt\` in the '${POC_DIR_NAME}' directory.
-                  *   For Go: The execution engine will automatically run \`go mod init poc\` and \`go mod tidy\`.
-              *   Based on the vulnerability type certain criteria must be met in our script, otherwise generate the PoC to the best of your ability:
-                  *   If the vulnerability is a Path Traversal Vulnerability:
-                      *   **YOU MUST** Use the 'write_file' tool to create a temporary file '../gcli_secext_temp.txt' directly outside of the project directory. 
-                      *   The script should then try to read the file using the vulnerability in the user's code. 
-                      *   **YOU MUST** Use the 'write_file' tool to delete the '../gcli_secext_temp.txt' file after the verification step, regardless of whether the read was successful or not.
-              *   The script should import the user's vulnerable file(s), and demonstrate the vulnerability in their code.
 
-          2.  **Run PoC:**
-              *   Use the 'run_poc' tool with absolute file paths to execute the code.
-              *   Analyze the output to verify if the vulnerability is reproducible.`,
-          },
+**Your Next Steps:**
+
+1.  **Generate PoC:**
+    *   The '${POC_DIR_NAME}' directory in '${SECURITY_DIR_NAME}' has been created.
+    *   Based on the project language (${language}), generate a script that demonstrates the vulnerability under the '${SECURITY_DIR_NAME}/${POC_DIR_NAME}/' directory.
+    ${extraInstructions}
+    *   The script should import the user's vulnerable file(s), and demonstrate the vulnerability in their code.
+
+2.  **Run PoC:**
+    *   Use the 'run_poc' tool with absolute file paths to execute the code.
+    *   Analyze the output to verify if the vulnerability is reproducible.`,
         },
       ],
     };
   },
 );
+
 server.registerPrompt(
   'security:scan_deps',
   {
@@ -204,31 +297,31 @@ server.registerPrompt(
         content: {
           type: 'text',
           text: `You are a highly skilled senior security analyst. First, you must greet the user. Then perform the scan.
-Your primary task is to conduct a security audit of the vulnerabilities in the dependencies of this project. You are required to only conduct the scan, not fix the vulnerabilities.
+                Your primary task is to conduct a security audit of the vulnerabilities in the dependencies of this project. You are required to only conduct the scan, not fix the vulnerabilities.
 
-**Available Tools**
-The following tools are available to you from osvScanner MCP server:
-- scan_vulnerable_dependencies: Scans dependencies for known vulnerabilities.
-- get_vulnerability_details: Gets details about a specific vulnerability.
-- ignore_vulnerability: Ignores a specific vulnerability.
+                **Available Tools**
+                The following tools are available to you from osvScanner MCP server:
+                - scan_vulnerable_dependencies: Scans dependencies for known vulnerabilities.
+                - get_vulnerability_details: Gets details about a specific vulnerability.
+                - ignore_vulnerability: Ignores a specific vulnerability.
 
-Utilizing your skillset, you must operate by strictly following the operating principles defined in your context.
+                Utilizing your skillset, you must operate by strictly following the operating principles defined in your context.
 
-**Step 1: Perform initial scan**
+                **Step 1: Perform initial scan**
 
-Use the scan_vulnerable_dependencies tool from osvScanner MCP server with recursive on the project, always use the absolute path.
-This will return a report of all the relevant lockfiles and all vulnerable dependencies in those files.
+                Use the scan_vulnerable_dependencies tool from osvScanner MCP server with recursive on the project, always use the absolute path.
+                This will return a report of all the relevant lockfiles and all vulnerable dependencies in those files.
 
-**Step 2: Analyse the report**
+                **Step 2: Analyse the report**
 
-Go through the report and determine the relevant project lockfiles (ignoring lockfiles in test directories),
-and prioritise which vulnerability to fix based on the description and severity.
-If more information is needed about a vulnerability, use the tool get_vulnerability_details.
+                Go through the report and determine the relevant project lockfiles (ignoring lockfiles in test directories),
+                and prioritise which vulnerability to fix based on the description and severity.
+                If more information is needed about a vulnerability, use the tool get_vulnerability_details.
 
-**Step 3: Prioritisation**
+                **Step 3: Prioritisation**
 
-Give advice on which vulnerabilities to prioritise fixing, and general advice on how to go about fixing
-them by updating. DO NOT try to automatically update the dependencies in any circumstances.`
+                Give advice on which vulnerabilities to prioritise fixing, and general advice on how to go about fixing
+                them by updating. DO NOT try to automatically update the dependencies in any circumstances.`
         },
       },
     ],
