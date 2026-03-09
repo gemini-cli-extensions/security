@@ -87,7 +87,7 @@ describe('runPoc', () => {
 
     expect(result.isError).toBe(true);
     expect((result.content[0] as any).text).toBe(
-      JSON.stringify({ error: 'Execution failed' })
+      JSON.stringify({ error: 'Execution failed', stdout: '', stderr: '' })
     );
   });
 
