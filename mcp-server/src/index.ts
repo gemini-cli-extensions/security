@@ -11,7 +11,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { getAuditScope } from './filesystem.js';
+import { getAuditScope, reduceAuditScope, getLineCount } from './filesystem.js';
 import { findLineNumbers } from './security.js';
 import { parseMarkdownToDict } from './parser.js';
 import { SECURITY_DIR_NAME, POC_DIR_NAME } from './constants.js';
@@ -51,6 +51,23 @@ server.tool(
         {
           type: 'text',
           text: diff,
+        },
+      ],
+    };
+  }) as any
+);
+
+server.tool(
+  'reduce_audit_scope',
+  'Reduces the audit scope by filtering out irrelevant files and folders.',
+  {} as any,
+  (() => {
+    const files = reduceAuditScope();
+    return {
+      content: [
+        {
+          type: 'text',
+          text: files.join('\n'),
         },
       ],
     };
@@ -238,5 +255,26 @@ async function startServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
+
+server.tool(
+  'get_line_count',
+  'Gets the total line count of a list of files.',
+  {
+    files: z
+      .array(z.string())
+      .describe('A list of file paths.'),
+  } as any,
+  ((input: {files: string[]}) => {
+    const totalLines = getLineCount(input.files);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: totalLines.toString(),
+        },
+      ],
+    };
+  }) as any
+);
 
 startServer();
