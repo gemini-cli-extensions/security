@@ -5,6 +5,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 /**
  * Checks if the current directory is a GitHub repository.
@@ -151,15 +152,9 @@ export const getLineCount = (files: string[]): number => {
   let totalLines = 0;
   for (const file of files) {
     try {
-      const result = spawnSync('wc', ['-l', file], {
-        encoding: 'utf-8',
-      });
-      if (result.stdout) {
-        const lineCount = parseInt(result.stdout.trim().split(' ')[0], 10);
-        if (!isNaN(lineCount)) {
-          totalLines += lineCount;
-        }
-      }
+      const content = readFileSync(file, 'utf-8');
+      const lineCount = (content.match(/\n/g) || []).length;
+      totalLines += lineCount;
     } catch (error) {
       console.error(`Error counting lines in file ${file}:`, error);
     }

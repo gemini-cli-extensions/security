@@ -5,7 +5,7 @@
  */
 
 import { expect, describe, it, beforeAll, afterAll } from 'vitest';
-import { isGitHubRepository, getAuditScope, reduceAuditScope } from './filesystem';
+import { isGitHubRepository, getAuditScope, reduceAuditScope, getLineCount } from './filesystem';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -104,5 +104,13 @@ describe('filesystem', () => {
 
     // Cleanup by switching back to the main, so other tests aren't affected
     execSync('git checkout master || git checkout main');
+  });
+
+  it('should return the correct line count for a list of files', () => {
+    fs.writeFileSync('file1.ts', 'line1\nline2\nline3\n'); // 3 newlines
+    fs.writeFileSync('file2.ts', 'line1\nline2'); // 1 newline
+    
+    const count = getLineCount(['file1.ts', 'file2.ts']);
+    expect(count).toBe(4);
   });
 });
