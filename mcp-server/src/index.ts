@@ -174,7 +174,7 @@ server.registerTool(
 );
 
 server.registerPrompt(
-  'security:scan_deps',
+  'security:scan-deps',
   {
     title: 'Scan Dependencies',
     description: '[Experimental] Scans dependencies for known vulnerabilities.',
