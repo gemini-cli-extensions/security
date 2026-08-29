@@ -1,13 +1,11 @@
 ---
 name: hol-guard
-description: Use the third-party HOL Guard CLI for supported-harness protection, approvals and evidence, and security scanning of agent plugins, skills, and MCP packages.
+description: Use the third-party HOL Guard CLI for supported-harness protection, approvals and evidence, and the separately installed plugin-scanner CLI for package inspection.
 ---
 
 # HOL Guard
 
-Use HOL Guard when a workflow needs deterministic security controls around agent or tool execution, or when reviewing an agent plugin, skill, or MCP package.
-
-HOL Guard is maintained separately at https://github.com/hashgraph-online/hol-guard-plugin.
+Use HOL Guard when a workflow needs deterministic security controls around agent or tool execution. HOL Guard is maintained separately at https://github.com/hashgraph-online/hol-guard.
 
 ## Install
 
@@ -26,53 +24,65 @@ python -m pip install --user hol-guard
 Check the installed CLI before using it:
 
 ```bash
-hol-guard --help
+hol-guard --version
 ```
 
 ## Protect a supported agent harness
 
-HOL Guard runtime protection is provided by its own harness integrations. Do not assume Gemini CLI itself is a supported interception target.
+HOL Guard runtime protection is provided by its own harness integrations. Do not assume this Gemini CLI Security skill itself creates a new interception hook.
 
-Check the currently installed CLI for supported harness commands:
+Discover the current installation's supported harnesses instead of relying on a static list:
 
 ```bash
-hol-guard install --help
-hol-guard run --help
+hol-guard detect --json
 ```
 
-For a harness HOL Guard currently supports:
+Use an exact supported harness identifier returned by detection. Then install, verify, dry-run, and launch through Guard:
 
 ```bash
 hol-guard install <harness>
-hol-guard doctor
+hol-guard doctor <harness> --json
+hol-guard run <harness> --dry-run
 hol-guard run <harness>
 ```
 
-Treat denied, review-required, and Guard error states as stop conditions. Do not execute the protected downstream action outside the Guard-owned flow to bypass a decision.
+If detection, install, doctor, or dry-run fails, stop instead of launching the raw harness outside Guard. Treat denied, review-required, and Guard error states as stop conditions.
 
 ## Approvals and evidence
 
-Use the installed CLI help for the current approval, receipt, and evidence commands before acting:
+Inspect queued decisions and evidence through Guard-owned commands:
 
 ```bash
-hol-guard --help
+hol-guard approvals
+hol-guard receipts
+hol-guard status
 ```
 
-Keep the policy decision and attempted action together in the evidence trail so a reviewer can distinguish allowed, denied, and review-required executions.
+When the user makes a terminal decision, use the exact request ID shown by `hol-guard approvals`:
+
+```bash
+hol-guard approvals approve <request-id>
+hol-guard approvals deny <request-id>
+```
+
+Never invent an approval or reuse an unrelated request ID.
 
 ## Scan plugins, skills, and MCP packages
 
-HOL Guard also provides package-scanning capabilities for suspicious agent extensions. Check the installed scanner interface first:
+Package inspection is provided by the separate `plugin-scanner` distribution; installing `hol-guard` does not imply that CLI is present.
+
+If package scanning is needed, install and invoke it separately:
 
 ```bash
-plugin-scanner --help
+pipx install plugin-scanner
+plugin-scanner verify .
 ```
 
-Scan the local package or repository using the current syntax shown by `plugin-scanner --help`. Treat high-confidence findings as review blockers until resolved or explicitly accepted.
+Treat high-confidence findings as review blockers until resolved or explicitly accepted. Package scanning is inspection, not runtime enforcement.
 
 ## Boundaries
 
-- This skill does not claim that Gemini CLI exposes a native HOL Guard pre-tool hook.
+- This skill does not claim that the Gemini CLI Security extension itself adds a HOL Guard pre-tool interception hook.
 - Runtime blocking belongs to HOL Guard's supported harness integrations.
-- Package scanning is inspection; it is not a substitute for runtime enforcement.
+- `plugin-scanner` is a separate maintainer/CI package and is not a substitute for HOL Guard runtime protection.
 - Never bypass deny, review, or error states by running the protected action directly.
