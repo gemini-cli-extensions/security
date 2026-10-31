@@ -69,9 +69,9 @@ export async function runPoc(
         await dependencies.fs.access(pythonBin);
       } catch {
         try {
-          await dependencies.execAsync(`python3 -m venv "${venvDir}"`);
+          await dependencies.execFileAsync('python3', ['-m', 'venv', venvDir]);
         } catch {
-          await dependencies.execAsync(`python -m venv "${venvDir}"`);
+          await dependencies.execFileAsync('python', ['-m', 'venv', venvDir]);
         }
       }
 
@@ -86,19 +86,19 @@ export async function runPoc(
       const hasProjectRequirements = await checkExists(dependencies.path.join(projectRoot, 'requirements.txt'));
 
       if (hasProjectPyproject) {
-        await dependencies.execAsync(`"${pythonBin}" -m pip install -e "${projectRoot}"`).catch(() => { });
+        await dependencies.execFileAsync(pythonBin, ['-m', 'pip', 'install', '-e', projectRoot]).catch(() => { });
       } else if (hasProjectRequirements) {
-        await dependencies.execAsync(`"${pythonBin}" -m pip install -r "${dependencies.path.join(projectRoot, 'requirements.txt')}"`).catch(() => { });
+        await dependencies.execFileAsync(pythonBin, ['-m', 'pip', 'install', '-r', dependencies.path.join(projectRoot, 'requirements.txt')]).catch(() => { });
       }
 
       const hasPocPyproject = await checkExists(dependencies.path.join(pocDir, 'pyproject.toml'));
       const hasPocRequirements = await checkExists(dependencies.path.join(pocDir, 'requirements.txt'));
 
       if (hasPocPyproject) {
-        await dependencies.execAsync(`"${pythonBin}" -m pip install .`, { cwd: pocDir }).catch(() => { });
+        await dependencies.execFileAsync(pythonBin, ['-m', 'pip', 'install', '.'], { cwd: pocDir }).catch(() => { });
       }
       if (hasPocRequirements) {
-        await dependencies.execAsync(`"${pythonBin}" -m pip install -r requirements.txt`, { cwd: pocDir }).catch(() => { });
+        await dependencies.execFileAsync(pythonBin, ['-m', 'pip', 'install', '-r', 'requirements.txt'], { cwd: pocDir }).catch(() => { });
       }
     } else if (ext === '.go') {
       runCmd = 'go';
@@ -153,9 +153,9 @@ export async function runPoc(
           const venvDir = dependencies.path.join(pocDir, '.venv');
           // Update the venv to include system site packages
           try {
-            await dependencies.execAsync(`python3 -m venv --system-site-packages "${venvDir}"`);
+            await dependencies.execFileAsync('python3', ['-m', 'venv', '--system-site-packages', venvDir]);
           } catch {
-            await dependencies.execAsync(`python -m venv --system-site-packages "${venvDir}"`);
+            await dependencies.execFileAsync('python', ['-m', 'venv', '--system-site-packages', venvDir]);
           }
 
           output = (await dependencies.execFileAsync(runCmd, runArgs, execOptions)) as unknown as { stdout: string; stderr: string };
